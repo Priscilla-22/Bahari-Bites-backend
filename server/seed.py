@@ -1,4 +1,4 @@
-#server/seed.py
+# server/seed.py
 from faker import Faker
 from server.models import db, User  
 from server.app import (
@@ -14,7 +14,8 @@ def seed_users(num_users=10):
         for _ in range(num_users):
             username = fake.user_name()
             password = fake.password()
-            user = User(username=username, password=password)
+            role = "customer"
+            user = User(username=username, password=password, role=role)
             db.session.add(user)
         db.session.commit()
 
