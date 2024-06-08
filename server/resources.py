@@ -80,6 +80,7 @@ class MenuItemResource(Resource):
             "name": menu_item.name,
             "description": menu_item.description,
             "price": str(menu_item.price),
+            "image_url": menu_item.image_url,
         }
 
     def post(self):
@@ -89,10 +90,16 @@ class MenuItemResource(Resource):
         parser.add_argument(
             "price", type=float, required=True, help="Price is required"
         )
+        parser.add_argument(
+            "image_url", type=str, required=False, help="Image URL is optional"
+        )
         args = parser.parse_args()
 
         menu_item = MenuItem(
-            name=args["name"], description=args.get("description"), price=args["price"]
+            name=args["name"],
+            description=args.get("description"),
+            price=args["price"],
+            image_url=args.get("image_url"),
         )
         db.session.add(menu_item)
         db.session.commit()
@@ -107,6 +114,8 @@ class MenuItemResource(Resource):
         parser.add_argument("name", type=str, required=False)
         parser.add_argument("description", type=str, required=False)
         parser.add_argument("price", type=float, required=False)
+        parser.add_argument("image_url", type=str, required=False)  
+
         args = parser.parse_args()
 
         menu_item = MenuItem.query.get(menu_item_id)
@@ -119,7 +128,8 @@ class MenuItemResource(Resource):
             menu_item.description = args["description"]
         if args["price"]:
             menu_item.price = args["price"]
-
+        if args["image_url"]:
+            menu_item.image_url = args["image_url"] 
         db.session.commit()
         return {"message": "Menu item updated successfully"}
 

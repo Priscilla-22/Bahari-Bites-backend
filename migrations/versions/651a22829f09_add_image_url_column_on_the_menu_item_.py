@@ -1,8 +1,8 @@
-"""Add orders model
+"""Add image url column on the menu item model
 
-Revision ID: 4cbf7d1bd520
+Revision ID: 651a22829f09
 Revises: 
-Create Date: 2024-06-08 13:23:25.671226
+Create Date: 2024-06-08 19:35:49.042709
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '4cbf7d1bd520'
+revision = '651a22829f09'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,6 +23,7 @@ def upgrade():
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('description', sa.String(length=255), nullable=True),
     sa.Column('price', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('image_url', sa.String(length=255), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user',
