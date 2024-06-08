@@ -2,7 +2,7 @@
 from flask_socketio import emit
 from server.app import socketio
 from flask_restful import Resource, reqparse
-from models import db, User, Order, OrderItem, MenuItem, Reservation
+from models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory
 from datetime import datetime,time
 
 
@@ -366,3 +366,65 @@ def calculate_reservation_cost(reservation_time):
         return 50  
     else:
         return 70 
+
+
+class InventoryResource(Resource):
+    def get(self, inventory_id):
+        inventory = Inventory.query.get(inventory_id)
+        if not inventory:
+            return {"message": "Inventory item not found"}, 404
+        return {
+            "id": inventory.id,
+            "item_name": inventory.item_name,
+            "quantity": inventory.quantity,
+        }
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "item_name", type=str, required=True, help="Item name is required"
+        )
+        parser.add_argument(
+            "quantity", type=int, required=True, help="Quantity is required"
+        )
+        args = parser.parse_args()
+
+        inventory = Inventory(item_name=args["item_name"], quantity=args["quantity"])
+        db.session.add(inventory)
+        db.session.commit()
+
+        return {
+            "message": "Inventory item created successfully",
+            "inventory_id": inventory.id,
+        }, 201
+
+    def put(self, inventory_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "quantity", type=int, required=True, help="Quantity is required"
+        )
+        args = parser.parse_args()
+
+        inventory = Inventory.query.get(inventory_id)
+        if not inventory:
+            return {"message": "Inventory item not found"}, 404
+
+        inventory.quantity = args["quantity"]
+        db.session.commit()
+
+        socketio.emit(
+            "stock_update",
+            {"inventory_id": inventory_id, "new_quantity": args["quantity"]},
+            namespace="/inventory",
+        )
+
+        return {"message": "Inventory item updated successfully"}
+
+    def delete(self, inventory_id):
+        inventory = Inventory.query.get(inventory_id)
+        if not inventory:
+            return {"message": "Inventory item not found"}, 404
+
+        db.session.delete(inventory)
+        db.session.commit()
+        return {"message": "Inventory item deleted successfully"}

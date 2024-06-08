@@ -8,6 +8,7 @@ from resources import (
     OrderItemResource,
     MenuItemResource,
     ReservationResource,
+    InventoryResource,
 )
 
 api_bp = Blueprint("api", __name__)
@@ -29,3 +30,4 @@ api.add_resource(
     ReservationResource,
     "/reservations",
 )
+api.add_resource(InventoryResource, "/inventory", "/inventory/<int:inventory_id>")
