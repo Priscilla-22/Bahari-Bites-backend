@@ -304,9 +304,7 @@ class ReservationResource(Resource):
             args["reservation_date"], "%Y-%m-%d %H:%M:%S"
         )
 
-        # Calculate reservation cost based on reservation time (morning, afternoon, evening)
-        # You may define your cost calculation logic here
-        # For simplicity, let's assume a fixed cost for each time slot
+       
         reservation_cost = calculate_reservation_cost(reservation_date.time())
 
         reservation = Reservation(
@@ -325,9 +323,9 @@ class ReservationResource(Resource):
 
 
 def calculate_reservation_cost(reservation_time):
-    if reservation_time < time(12, 0):  # Before noon
-        return 30  # Morning reservation cost
-    elif reservation_time < time(18, 0):  # Before 6 PM
-        return 50  # Afternoon reservation cost
+    if reservation_time < time(12, 0):  
+        return 30 
+    elif reservation_time < time(18, 0):  
+        return 50  
     else:
-        return 70  # Evening reservation cost
+        return 70 
