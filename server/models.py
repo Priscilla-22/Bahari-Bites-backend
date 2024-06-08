@@ -36,3 +36,15 @@ class OrderItem(db.Model):
     menu_item = db.relationship(
         "MenuItem", backref=db.backref("order_items", lazy=True)
     )
+
+
+class Reservation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id_reservation = db.Column(
+        db.Integer, db.ForeignKey("user.id"), nullable=False
+    )
+    reservation_date = db.Column(db.DateTime, nullable=False)
+    table_number = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f"<Reservation {self.id}>"

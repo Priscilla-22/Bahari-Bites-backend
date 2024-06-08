@@ -1,7 +1,7 @@
 # server/resources.py
 from flask_restful import Resource, reqparse
-from models import db, User, Order, OrderItem, MenuItem
-from datetime import datetime
+from models import db, User, Order, OrderItem, MenuItem, Reservation
+from datetime import datetime,time
 
 
 class UserRegistration(Resource):
@@ -271,3 +271,63 @@ class OrderItemResource(Resource):
         db.session.delete(order_item)
         db.session.commit()
         return {"message": "Order item deleted successfully"}
+
+
+class ReservationResource(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "user_id_reservation",
+            type=int,
+            required=True,
+            help="User ID is required for reservation",
+        )
+        parser.add_argument(
+            "reservation_date",
+            type=str,
+            required=True,
+            help="Reservation date is required (format: YYYY-MM-DD HH:MM:SS)",
+        )
+        parser.add_argument(
+            "table_number",
+            type=int,
+            required=True,
+            help="Table number is required for reservation",
+        )
+        args = parser.parse_args()
+
+        user = User.query.get(args["user_id_reservation"])
+        if not user:
+            return {"message": "User not found"}, 404
+
+        reservation_date = datetime.strptime(
+            args["reservation_date"], "%Y-%m-%d %H:%M:%S"
+        )
+
+        # Calculate reservation cost based on reservation time (morning, afternoon, evening)
+        # You may define your cost calculation logic here
+        # For simplicity, let's assume a fixed cost for each time slot
+        reservation_cost = calculate_reservation_cost(reservation_date.time())
+
+        reservation = Reservation(
+            user_id_reservation=args["user_id_reservation"],
+            reservation_date=reservation_date,
+            table_number=args["table_number"],
+        )
+        db.session.add(reservation)
+        db.session.commit()
+
+        return {
+            "message": "Reservation created successfully",
+            "reservation_id": reservation.id,
+            "reservation_cost": reservation_cost,
+        }, 201
+
+
+def calculate_reservation_cost(reservation_time):
+    if reservation_time < time(12, 0):  # Before noon
+        return 30  # Morning reservation cost
+    elif reservation_time < time(18, 0):  # Before 6 PM
+        return 50  # Afternoon reservation cost
+    else:
+        return 70  # Evening reservation cost
