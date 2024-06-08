@@ -1,4 +1,6 @@
 # server/resources.py
+from flask_socketio import emit
+from server.app import socketio
 from flask_restful import Resource, reqparse
 from models import db, User, Order, OrderItem, MenuItem, Reservation
 from datetime import datetime,time
@@ -225,6 +227,31 @@ class OrderResource(Resource):
         db.session.delete(order)
         db.session.commit()
         return {"message": "Order deleted successfully"}
+
+    def get_status(self, order_id):
+        order = Order.query.get(order_id)
+        if not order:
+            return {"message": "Order not found"}, 404
+        return {"status": order.status}
+
+    def update_status(self, order_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "status", type=str, required=True, help="Status is required"
+        )
+        args = parser.parse_args()
+
+        order = Order.query.get(order_id)
+        if not order:
+            return {"message": "Order not found"}, 404
+
+        old_status = order.status
+        order.status = args["status"]
+        db.session.commit()
+
+        socketio.emit('order_status_update', {'order_id': order_id, 'old_status': old_status, 'new_status': order.status}, namespace='/order')
+
+        return {"message": "Order status updated successfully"}
 
 
 class OrderItemResource(Resource):

@@ -15,7 +15,10 @@ api = Api(api_bp)
 
 api.add_resource(UserRegistration, "/register")
 api.add_resource(UserLogin, "/login")
-api.add_resource(OrderResource, "/orders", "/orders/<int:order_id>")
+api.add_resource(
+    OrderResource, "/orders", "/orders/<int:order_id>", "/orders/<int:order_id>/status"
+)
+
 api.add_resource(
     OrderItemResource,
     "/orders/<int:order_id>/items",
