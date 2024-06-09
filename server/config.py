@@ -15,4 +15,4 @@ class Config:
     )
     MPESA_SHORTCODE = os.environ.get("MPESA_SHORTCODE")
     MPESA_PASSKEY = os.environ.get("MPESA_PASSKEY")
-    MPESA_CALLBACK_URL = os.environ.get("http://127.0.0.1:5000/api")
+    MPESA_CALLBACK_URL = os.environ.get("https://bahari-bites-backend.onrender.com")
