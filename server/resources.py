@@ -4,6 +4,7 @@ from server.app import socketio
 from flask_restful import Resource, reqparse
 from models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory
 from datetime import datetime,time
+from server.mpesa import lipa_na_mpesa_online
 
 
 class UserRegistration(Resource):
@@ -170,49 +171,37 @@ class OrderResource(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument(
-            "user_id_order", type=int, required=True, help="User ID is required"
-        )
-        parser.add_argument(
-            "status", type=str, required=True, help="Status is required"
-        )
-        parser.add_argument(
-            "order_items",
-            type=dict,
-            action="append",
-            required=True,
-            help="Order items are required",
-        )
+        parser.add_argument("user_id_order", type=int, required=True, help="User ID is required")
+        parser.add_argument("status", type=str, required=True, help="Status is required")
+        parser.add_argument("order_items", type=dict, action="append", required=True, help="Order items are required")
+        parser.add_argument("phone_number", type=str, required=True, help="Phone number is required for payment")
         args = parser.parse_args()
 
         user = User.query.get(args["user_id_order"])
         if not user:
             return {"message": "User not found"}, 404
 
-        order = Order(
-            user_id_order=args["user_id_order"],
-            order_date=datetime.utcnow(),
-            status=args["status"],
-        )
+        order = Order(user_id_order=args["user_id_order"], order_date=datetime.utcnow(), status=args["status"])
         db.session.add(order)
         db.session.commit()
 
+        total_amount = 0
         for item in args["order_items"]:
             menu_item = MenuItem.query.get(item["menu_item_id"])
             if not menu_item:
-                return {
-                    "message": f"Menu item with ID {item['menu_item_id']} not found"
-                }, 404
-            order_item = OrderItem(
-                order_id=order.id,
-                menu_item_id=item["menu_item_id"],
-                quantity=item["quantity"],
-            )
+                return {"message": f"Menu item with ID {item['menu_item_id']} not found"}, 404
+            order_item = OrderItem(order_id=order.id, menu_item_id=item["menu_item_id"], quantity=item["quantity"])
             db.session.add(order_item)
+            total_amount += menu_item.price * item["quantity"]
 
         db.session.commit()
 
-        return {"message": "Order created successfully", "order_id": order.id}, 201
+        payment_response = lipa_na_mpesa_online(args["phone_number"], total_amount, order.id)
+        if payment_response.get("ResponseCode") == "0":
+            return {"message": "Order created and payment initiated successfully", "order_id": order.id}, 201
+        else:
+            return {"message": "Order created but payment failed", "order_id": order.id, "payment_error": payment_response}, 400
+
 
     def put(self, order_id):
         parser = reqparse.RequestParser()
