@@ -31,6 +31,12 @@ class Order(db.Model):
     status = db.Column(db.String(50), nullable=False)
     user = db.relationship("User", backref=db.backref("orders", lazy=True))
     order_items = db.relationship("OrderItem", backref="order", lazy=True)
+    phone_number = db.Column(
+        db.String(15), nullable=False
+    )  
+
+    def __repr__(self):
+        return f"<Order {self.id}>"
 
 
 class OrderItem(db.Model):
