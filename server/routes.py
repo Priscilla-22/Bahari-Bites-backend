@@ -1,7 +1,7 @@
 # server/routes.py
 from flask import Blueprint
 from flask_restful import Api
-from resources import (
+from .resources import (
     UserRegistration,
     UserLogin,
     OrderResource,
