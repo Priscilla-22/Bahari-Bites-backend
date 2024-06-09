@@ -2,7 +2,7 @@
 from flask_socketio import emit
 from server.app import socketio
 from flask_restful import Resource, reqparse
-from models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory
+from .models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory
 from datetime import datetime,time
 from server.mpesa import lipa_na_mpesa_online
 
