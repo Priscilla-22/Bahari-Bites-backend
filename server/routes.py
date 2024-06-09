@@ -10,7 +10,7 @@ from .resources import (
     ReservationResource,
     InventoryResource,
 )
-from mpesa import mpesa_callback
+from .mpesa import mpesa_callback
 
 api_bp = Blueprint("api", __name__)
 api = Api(api_bp)
