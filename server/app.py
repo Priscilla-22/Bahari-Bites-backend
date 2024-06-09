@@ -18,7 +18,7 @@ def create_app():
     
     socketio.init_app(app) 
 
-    from routes import api_bp
+    from .routes import api_bp
 
     app.register_blueprint(api_bp, url_prefix="/api")
 
