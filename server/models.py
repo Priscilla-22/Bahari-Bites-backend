@@ -15,6 +15,7 @@ class MenuItem(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(255))
     price = db.Column(db.Numeric(10, 2), nullable=False)
+    image_url = db.Column(db.String(255))
     inventory_id = db.Column(db.Integer, db.ForeignKey("inventory.id"))
     inventory = db.relationship(
         "Inventory", backref=db.backref("menu_item", uselist=False)
