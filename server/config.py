@@ -12,3 +12,4 @@ class Config:
     MPESA_SHORTCODE = os.environ.get("MPESA_SHORTCODE")
     MPESA_PASSKEY = os.environ.get("MPESA_PASSKEY")
     MPESA_CALLBACK_URL = os.environ.get("MPESA_CALLBACK_URL")
+    JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")  

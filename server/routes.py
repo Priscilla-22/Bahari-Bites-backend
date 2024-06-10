@@ -5,6 +5,7 @@ from .resources import (
     HomeResource,
     UserRegistration,
     UserLogin,
+    CartResource,
     OrderResource,
     OrderItemResource,
     MenuItemResource,
@@ -34,3 +35,6 @@ api.add_resource(
     "/reservations",
 )
 api.add_resource(InventoryResource, "/inventory", "/inventory/<int:inventory_id>")
+api.add_resource(
+    CartResource, "/cart", "/cart/<int:menu_item_id>"
+) 

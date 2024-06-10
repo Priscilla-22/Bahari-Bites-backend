@@ -1,9 +1,10 @@
 # server/resources.py
-from flask import jsonify
+from flask import jsonify,request
+from flask_jwt_extended import jwt_required, get_jwt_identity,create_access_token
 from flask_socketio import emit
 from server.app import socketio
 from flask_restful import Resource, reqparse
-from .models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory
+from .models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory,Cart,CartItem
 from datetime import datetime,time
 from server.mpesa import lipa_na_mpesa_online
 import decimal
@@ -67,12 +68,15 @@ class UserLogin(Resource):
         user = User.query.filter(
             (User.username == credential) | (User.email == credential)
         ).first()
-
+        
         if user and user.password == password:
+
+            access_token = create_access_token(identity=user.id)
             return {
                 "message": "User logged in successfully",
                 "username": user.username,
                 "role": user.role,
+                "access_token": access_token  
             }, 200
         else:
             return {"message": "Invalid username, email, or password"}, 401
@@ -149,6 +153,49 @@ class MenuItemResource(Resource):
         db.session.delete(menu_item)
         db.session.commit()
         return {"message": "Menu item deleted successfully"}
+
+
+class CartResource(Resource):
+    @jwt_required()
+    def get(self):
+        current_user_id = get_jwt_identity()
+        user_cart = Cart.query.filter_by(user_id=current_user_id).first()
+        if not user_cart:
+            return {"message": "Cart is empty"}
+
+        cart_items = [
+            {
+                "id": cart_item.menu_item.id,
+                "name": cart_item.menu_item.name,
+                "quantity": cart_item.quantity,
+            }
+            for cart_item in user_cart.items
+        ]
+        return jsonify(cart_items)
+
+    @jwt_required()
+    def post(self, menu_item_id):
+        current_user_id = get_jwt_identity()
+        user_cart = Cart.query.filter_by(user_id=current_user_id).first()
+        if not user_cart:
+            user_cart = Cart(user_id=current_user_id)
+            db.session.add(user_cart)
+            db.session.commit()
+
+        quantity = request.json.get("quantity", 1)
+        cart_item = CartItem.query.filter_by(
+            cart_id=user_cart.id, menu_item_id=menu_item_id
+        ).first()
+        if cart_item:
+            cart_item.quantity += quantity
+        else:
+            cart_item = CartItem(
+                cart_id=user_cart.id, menu_item_id=menu_item_id, quantity=quantity
+            )
+            db.session.add(cart_item)
+
+        db.session.commit()
+        return {"message": "Item added to cart successfully"}
 
 
 class OrderResource(Resource):

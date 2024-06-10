@@ -7,6 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
+from flask_jwt_extended import JWTManager
+
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
@@ -25,6 +27,8 @@ def create_app():
     migrate = Migrate(app, db)
     
     socketio.init_app(app) 
+    jwt = JWTManager(app)
+
 
     from .routes import api_bp
 

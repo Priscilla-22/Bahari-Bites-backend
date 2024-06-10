@@ -1,5 +1,6 @@
 # server/models.py
 from server.app import db
+from sqlalchemy.orm import relationship
 
 
 class User(db.Model):
@@ -8,6 +9,7 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(50), nullable=False)
+    cart = db.relationship('Cart', backref='user', uselist=False)
 
 
 class MenuItem(db.Model):
@@ -20,6 +22,20 @@ class MenuItem(db.Model):
     inventory = db.relationship(
         "Inventory", backref=db.backref("menu_item", uselist=False)
     )
+
+
+class Cart(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    items = relationship("CartItem", backref="cart")
+
+
+class CartItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    cart_id = db.Column(db.Integer, db.ForeignKey("cart.id"), nullable=False)
+    menu_item_id = db.Column(db.Integer, db.ForeignKey("menu_item.id"), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    menu_item = db.relationship("MenuItem")
 
 
 class Order(db.Model):
