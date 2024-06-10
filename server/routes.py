@@ -16,7 +16,7 @@ from .mpesa import mpesa_callback
 api_bp = Blueprint("api", __name__)
 api = Api(api_bp)
 
-api.add_resource(HomeResource, "/ore")
+api.add_resource(HomeResource, "/")
 api.add_resource(UserRegistration, "/register")
 api.add_resource(UserLogin, "/login")
 api.add_resource(
