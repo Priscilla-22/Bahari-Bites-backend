@@ -4,6 +4,10 @@ from flask_socketio import SocketIO
 from .config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from dotenv import load_dotenv
+import os
+
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 db = SQLAlchemy()
 socketio = SocketIO()
