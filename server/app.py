@@ -24,9 +24,6 @@ def create_app():
     db.init_app(app)
     migrate = Migrate(app, db)
     
-    port = int(os.environ.get("PORT", 5000))
-
-    
     socketio.init_app(app) 
 
     from .routes import api_bp
