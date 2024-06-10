@@ -9,6 +9,7 @@ dnspython==2.6.1
 eventlet==0.36.1
 Faker==25.6.0
 Flask==3.0.3
+Flask-Cors==4.0.1
 Flask-Migrate==4.0.7
 Flask-RESTful==0.3.10
 Flask-SocketIO==5.3.6
