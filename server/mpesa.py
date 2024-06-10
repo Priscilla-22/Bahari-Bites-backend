@@ -7,6 +7,8 @@ import json
 from datetime import datetime
 from flask import current_app
 import logging
+import decimal
+
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -44,7 +46,7 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
         "Password": online_password,
         "Timestamp": timestamp,
         "TransactionType": "CustomerPayBillOnline",
-        "Amount": amount,
+        "Amount": str(amount),
         "PartyA": phone_number,
         "PartyB": shortcode,
         "PhoneNumber": phone_number,

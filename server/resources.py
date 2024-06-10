@@ -6,6 +6,7 @@ from flask_restful import Resource, reqparse
 from .models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory
 from datetime import datetime,time
 from server.mpesa import lipa_na_mpesa_online
+import decimal
 
 
 class HomeResource(Resource):
@@ -196,7 +197,7 @@ class OrderResource(Resource):
         db.session.add(order)
         db.session.commit()
 
-        total_amount = 0
+        total_amount = decimal.Decimal(0)
         for item in args["order_items"]:
             menu_item = MenuItem.query.get(item["menu_item_id"])
             if not menu_item:
