@@ -16,9 +16,13 @@ socketio = SocketIO()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    
 
     db.init_app(app)
     migrate = Migrate(app, db)
+    
+    port = int(os.environ.get("PORT", 5000))
+
     
     socketio.init_app(app) 
 

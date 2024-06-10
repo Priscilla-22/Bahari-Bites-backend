@@ -1,4 +1,5 @@
 # server/resources.py
+from flask import jsonify
 from flask_socketio import emit
 from server.app import socketio
 from flask_restful import Resource, reqparse
