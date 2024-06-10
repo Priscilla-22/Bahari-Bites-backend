@@ -7,6 +7,11 @@ from datetime import datetime,time
 from server.mpesa import lipa_na_mpesa_online
 
 
+class HomeResource(Resource):
+    def get(self):
+        return jsonify({"message": "Welcome to Bahari Bites"})
+
+
 class UserRegistration(Resource):
     def post(self):
         parser = reqparse.RequestParser()
@@ -181,7 +186,12 @@ class OrderResource(Resource):
         if not user:
             return {"message": "User not found"}, 404
 
-        order = Order(user_id_order=args["user_id_order"], order_date=datetime.utcnow(), status=args["status"])
+        order = Order(
+            user_id_order=args["user_id_order"],
+            order_date=datetime.utcnow(),
+            status=args["status"],
+            phone_number=args["phone_number"],
+        )
         db.session.add(order)
         db.session.commit()
 
@@ -201,7 +211,6 @@ class OrderResource(Resource):
             return {"message": "Order created and payment initiated successfully", "order_id": order.id}, 201
         else:
             return {"message": "Order created but payment failed", "order_id": order.id, "payment_error": payment_response}, 400
-
 
     def put(self, order_id):
         parser = reqparse.RequestParser()

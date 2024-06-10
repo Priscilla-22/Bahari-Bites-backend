@@ -6,15 +6,26 @@ import base64
 import json
 from datetime import datetime
 from flask import current_app
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def get_mpesa_access_token():
     consumer_key = current_app.config["MPESA_CONSUMER_KEY"]
     consumer_secret = current_app.config["MPESA_CONSUMER_SECRET"]
     api_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
-    response = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
-    mpesa_access_token = json.loads(response.text)
-    return mpesa_access_token["access_token"]
+    r = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
+
+    logging.debug(f"MPesa API Response: {r.text}")  
+
+    try:
+        mpesa_access_token = json.loads(r.text)
+        return mpesa_access_token["access_token"]
+    except json.JSONDecodeError as e:
+        logging.error(f"JSON decoding failed: {e}")
+        logging.error(f"Response content: {r.text}")
+        raise ValueError("Failed to decode JSON from MPesa API response")
 
 
 def lipa_na_mpesa_online(phone_number, amount, order_id):
