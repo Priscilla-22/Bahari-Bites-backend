@@ -8,6 +8,7 @@ from .models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory
 from datetime import datetime,time
 from .mpesa import lipa_na_mpesa_online, mpesa_callback
 import decimal
+from twilio.rest import Client
 
 
 class HomeResource(Resource):
@@ -257,9 +258,32 @@ class OrderResource(Resource):
 
         payment_response = lipa_na_mpesa_online(args["phone_number"], total_amount, order.id)
         if payment_response.get("ResponseCode") == "0":
+            self.send_order_confirmation_sms(order.id, args["phone_number"])
+
             return {"message": "Order created and payment initiated successfully", "order_id": order.id}, 201
         else:
             return {"message": "Order created but payment failed", "order_id": order.id, "payment_error": payment_response}, 400
+
+    def send_order_confirmation_sms(self, order_id, phone_number):
+        order = Order.query.get(order_id)
+        if not order:
+            return
+
+        order_summary = "\n".join(
+            [f"{item.menu_item.name} (x{item.quantity})" for item in order.order_items]
+        )
+
+        message = f"Order Confirmation\nOrder ID: {order.id}\nEstimated Delivery: 30 mins\nOrder Summary:\n{order_summary}"
+        self.send_sms(phone_number, message)
+
+    def send_sms(self, phone_number, message):
+        account_sid = "your_twilio_account_sid"
+        auth_token = "your_twilio_auth_token"
+        client = Client(account_sid, auth_token)
+
+        client.messages.create(
+            body=message, from_="your_twilio_phone_number", to=phone_number
+        )
 
     def put(self, order_id):
         parser = reqparse.RequestParser()
