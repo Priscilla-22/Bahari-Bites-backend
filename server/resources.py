@@ -199,6 +199,23 @@ class CartResource(Resource):
         db.session.commit()
         return {"message": "Item added to cart successfully"}
 
+    @jwt_required()
+    def delete(self, menu_item_id):
+        current_user_id = get_jwt_identity()
+        user_cart = Cart.query.filter_by(user_id=current_user_id).first()
+        if not user_cart:
+            return {"message": "Cart is empty"}
+
+        cart_item = CartItem.query.filter_by(
+            cart_id=user_cart.id, menu_item_id=menu_item_id
+        ).first()
+        if not cart_item:
+            return {"message": "Item not found in cart"}
+
+        db.session.delete(cart_item)
+        db.session.commit()
+        return {"message": "Item removed from cart successfully"}
+
 
 class OrderResource(Resource):
     def get(self, order_id):
@@ -225,46 +242,49 @@ class OrderResource(Resource):
             "order_items": order_items,
         }
 
+    @jwt_required()
     def post(self):
+        current_user_id = get_jwt_identity()
+        user_cart = Cart.query.filter_by(user_id=current_user_id).first()
+        if not user_cart:
+            return {"message": "Cart is empty"}
+
         parser = reqparse.RequestParser()
-        parser.add_argument("user_id_order", type=int, required=True, help="User ID is required")
-        parser.add_argument("status", type=str, required=True, help="Status is required")
-        parser.add_argument("order_items", type=dict, action="append", required=True, help="Order items are required")
-        parser.add_argument("phone_number", type=str, required=True, help="Phone number is required for payment")
+        parser.add_argument(
+            "phone_number", type=str, required=True, help="Phone number is required for payment"
+        )
         args = parser.parse_args()
 
-        user = User.query.get(args["user_id_order"])
-        if not user:
-            return {"message": "User not found"}, 404
+        total_amount = decimal.Decimal(0)
+        order_items = []
+        for cart_item in user_cart.items:
+            order_items.append(
+                OrderItem(
+                    menu_item_id=cart_item.menu_item_id,
+                    quantity=cart_item.quantity
+                )
+            )
+            total_amount += cart_item.menu_item.price * cart_item.quantity
 
         order = Order(
-            user_id_order=args["user_id_order"],
+            user_id_order=current_user_id,
             order_date=datetime.utcnow(),
-            status=args["status"],
-            phone_number=args["phone_number"],
+            status="Pending",  # or any default status
+            phone_number=args["phone_number"]
         )
+        order.order_items = order_items
         db.session.add(order)
-        db.session.commit()
-
-        total_amount = decimal.Decimal(0)
-        for item in args["order_items"]:
-            menu_item = MenuItem.query.get(item["menu_item_id"])
-            if not menu_item:
-                return {"message": f"Menu item with ID {item['menu_item_id']} not found"}, 404
-            order_item = OrderItem(order_id=order.id, menu_item_id=item["menu_item_id"], quantity=item["quantity"])
-            db.session.add(order_item)
-            total_amount += menu_item.price * item["quantity"]
-
         db.session.commit()
 
         payment_response = lipa_na_mpesa_online(args["phone_number"], total_amount, order.id)
         if payment_response.get("ResponseCode") == "0":
-            self.send_order_confirmation_sms(order.id, args["phone_number"])
+            # Clear the cart after successful order creation
+            CartItem.query.filter_by(cart_id=user_cart.id).delete()
+            db.session.commit()
 
             return {"message": "Order created and payment initiated successfully", "order_id": order.id}, 201
         else:
             return {"message": "Order created but payment failed", "order_id": order.id, "payment_error": payment_response}, 400
-
     def send_order_confirmation_sms(self, order_id, phone_number, forwarding_number):
         order = Order.query.get(order_id)
         if not order:
