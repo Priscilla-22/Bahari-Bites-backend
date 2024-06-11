@@ -9,6 +9,7 @@ from datetime import datetime,time
 from .mpesa import lipa_na_mpesa_online, mpesa_callback
 import decimal
 from twilio.rest import Client
+import os
 
 
 class HomeResource(Resource):
@@ -264,7 +265,7 @@ class OrderResource(Resource):
         else:
             return {"message": "Order created but payment failed", "order_id": order.id, "payment_error": payment_response}, 400
 
-    def send_order_confirmation_sms(self, order_id, phone_number):
+    def send_order_confirmation_sms(self, order_id, phone_number, forwarding_number):
         order = Order.query.get(order_id)
         if not order:
             return
@@ -274,15 +275,25 @@ class OrderResource(Resource):
         )
 
         message = f"Order Confirmation\nOrder ID: {order.id}\nEstimated Delivery: 30 mins\nOrder Summary:\n{order_summary}"
-        self.send_sms(phone_number, message)
+        self.send_sms(phone_number, message, forwarding_number)
+        
+    def send_sms(self, phone_number, message, forwarding_number):
+        account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+        auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+        from_number = os.getenv("TWILIO_PHONE_NUMBER")
 
-    def send_sms(self, phone_number, message):
-        account_sid = "your_twilio_account_sid"
-        auth_token = "your_twilio_auth_token"
         client = Client(account_sid, auth_token)
 
         client.messages.create(
-            body=message, from_="your_twilio_phone_number", to=phone_number
+            body=message,
+            from_=from_number,
+            to=phone_number
+        )
+
+        client.messages.create(
+            body=f"Forwarded Message: {message}",
+            from_=from_number,
+            to=forwarding_number
         )
 
     def put(self, order_id):
