@@ -61,8 +61,7 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
 
 
 def mpesa_callback():
-    data = json.loads(request.data)
-    print("M-Pesa Callback data: ", data)
+    data = request.json  
 
     callback = data.get("Body", {}).get("stkCallback", {})
     merchant_request_id = callback.get("MerchantRequestID")
@@ -89,8 +88,8 @@ def mpesa_callback():
             phone_number = value
 
     order_id = None
-    if "AccountReference" in request.json:
-        order_id = request.json["AccountReference"]
+    if "AccountReference" in data:
+        order_id = data["AccountReference"]
 
     mpesa_transaction = MpesaTransaction(
         merchant_request_id=merchant_request_id,

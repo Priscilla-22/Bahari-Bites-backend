@@ -4,7 +4,18 @@ from flask_jwt_extended import jwt_required, get_jwt_identity,create_access_toke
 from flask_socketio import emit
 from server.app import socketio
 from flask_restful import Resource, reqparse
-from .models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory,Cart,CartItem
+from .models import (
+    db,
+    User,
+    Order,
+    OrderItem,
+    MenuItem,
+    Reservation,
+    Inventory,
+    Cart,
+    CartItem,
+    MpesaTransaction,
+)
 from datetime import datetime,time
 from .mpesa import lipa_na_mpesa_online, mpesa_callback
 from decimal import Decimal
@@ -290,6 +301,10 @@ class OrderResource(Resource):
             CartItem.query.filter_by(cart_id=user_cart.id).delete()
             db.session.commit()
 
+            forwarding_number = self.get_forwarding_number(order.id)
+            self.send_order_confirmation_sms(
+                order.id, args["phone_number"], forwarding_number
+            )
             return {
                 "message": "Order created and payment initiated successfully",
                 "order_id": order.id,
@@ -300,9 +315,14 @@ class OrderResource(Resource):
                 "order_id": order.id,
                 "payment_error": payment_response,
             }, 400
-            
-            
 
+    def get_forwarding_number(self, order_id):
+        mpesa_transaction = MpesaTransaction.query.filter_by(order_id=order_id).first()
+        if mpesa_transaction:
+            return mpesa_transaction.phone_number
+        return None
+
+    
     def send_order_confirmation_sms(self, order_id, phone_number, forwarding_number):
         order = Order.query.get(order_id)
         if not order:
