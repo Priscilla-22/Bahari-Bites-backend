@@ -63,4 +63,10 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
 def mpesa_callback():
     data = json.loads(request.data)
     print("M-Pesa Callback data: ", data)
-    return data
+
+    body = data.get("Body", {})  # Access the "Body" key in the parsed JSON data
+    stk_callback = body.get(
+        "stkCallback", {}
+    )  # Access the "stkCallback" key within the "Body" data
+
+    return stk_callback
