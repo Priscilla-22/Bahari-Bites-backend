@@ -64,20 +64,17 @@ def mpesa_callback():
     data = json.loads(request.data)
     print("M-Pesa Callback data: ", data)
 
-    # Extract required fields from the callback data
     callback = data.get("Body", {}).get("stkCallback", {})
     merchant_request_id = callback.get("MerchantRequestID")
     checkout_request_id = callback.get("CheckoutRequestID")
     result_code = callback.get("ResultCode")
     result_desc = callback.get("ResultDesc")
 
-    # Initialize values
     amount = None
     mpesa_receipt_number = None
     transaction_date = None
     phone_number = None
 
-    # Retrieve callback metadata if available
     callback_metadata = callback.get("CallbackMetadata", {}).get("Item", [])
     for item in callback_metadata:
         name = item.get("Name")
@@ -91,12 +88,10 @@ def mpesa_callback():
         elif name == "PhoneNumber":
             phone_number = value
 
-    # Assuming you pass order_id in AccountReference, extract it if needed
     order_id = None
     if "AccountReference" in request.json:
         order_id = request.json["AccountReference"]
 
-    # Create a new MpesaTransaction record
     mpesa_transaction = MpesaTransaction(
         merchant_request_id=merchant_request_id,
         checkout_request_id=checkout_request_id,
@@ -109,7 +104,6 @@ def mpesa_callback():
         order_id=order_id,
     )
 
-    # Save to the database
     db.session.add(mpesa_transaction)
     db.session.commit()
 
