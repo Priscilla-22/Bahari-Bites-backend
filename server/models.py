@@ -81,3 +81,22 @@ class Inventory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_name = db.Column(db.String(100), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
+
+
+class MpesaTransaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    merchant_request_id = db.Column(db.String(100), nullable=False)
+    checkout_request_id = db.Column(db.String(100), nullable=False)
+    result_code = db.Column(db.Integer, nullable=False)
+    result_description = db.Column(db.String(255), nullable=False)
+    amount = db.Column(db.Numeric(10, 2))
+    mpesa_receipt_number = db.Column(db.String(50))
+    transaction_date = db.Column(db.DateTime)
+    phone_number = db.Column(db.String(15), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey("order.id"), nullable=False)
+    order = db.relationship(
+        "Order", backref=db.backref("mpesa_transactions", lazy=True)
+    )
+
+    def __repr__(self):
+        return f"<MpesaTransaction {self.id}>"

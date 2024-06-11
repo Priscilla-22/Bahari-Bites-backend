@@ -1,5 +1,6 @@
 # server/mpesa.py
 from flask import request
+from .models import MpesaTransaction, db
 import requests
 from requests.auth import HTTPBasicAuth
 import base64
@@ -62,4 +63,54 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
 def mpesa_callback():
     data = json.loads(request.data)
     print("M-Pesa Callback data: ", data)
+
+    # Extract required fields from the callback data
+    callback = data.get("Body", {}).get("stkCallback", {})
+    merchant_request_id = callback.get("MerchantRequestID")
+    checkout_request_id = callback.get("CheckoutRequestID")
+    result_code = callback.get("ResultCode")
+    result_desc = callback.get("ResultDesc")
+
+    # Initialize values
+    amount = None
+    mpesa_receipt_number = None
+    transaction_date = None
+    phone_number = None
+
+    # Retrieve callback metadata if available
+    callback_metadata = callback.get("CallbackMetadata", {}).get("Item", [])
+    for item in callback_metadata:
+        name = item.get("Name")
+        value = item.get("Value")
+        if name == "Amount":
+            amount = decimal.Decimal(value)
+        elif name == "MpesaReceiptNumber":
+            mpesa_receipt_number = value
+        elif name == "TransactionDate":
+            transaction_date = datetime.strptime(str(value), "%Y%m%d%H%M%S")
+        elif name == "PhoneNumber":
+            phone_number = value
+
+    # Assuming you pass order_id in AccountReference, extract it if needed
+    order_id = None
+    if "AccountReference" in request.json:
+        order_id = request.json["AccountReference"]
+
+    # Create a new MpesaTransaction record
+    mpesa_transaction = MpesaTransaction(
+        merchant_request_id=merchant_request_id,
+        checkout_request_id=checkout_request_id,
+        result_code=result_code,
+        result_description=result_desc,
+        amount=amount,
+        mpesa_receipt_number=mpesa_receipt_number,
+        transaction_date=transaction_date,
+        phone_number=phone_number,
+        order_id=order_id,
+    )
+
+    # Save to the database
+    db.session.add(mpesa_transaction)
+    db.session.commit()
+
     return {"ResultCode": 0, "ResultDesc": "Accepted"}
