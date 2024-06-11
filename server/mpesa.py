@@ -1,6 +1,6 @@
 # server/mpesa.py
 from flask import request
-from .models import MpesaTransaction, db
+from .models import db, MpesaTransaction
 import requests
 from requests.auth import HTTPBasicAuth
 import base64
@@ -16,19 +16,19 @@ logging.basicConfig(level=logging.DEBUG)
 
 def get_mpesa_access_token():
     consumer_key = current_app.config["MPESA_CONSUMER_KEY"]
-    consumer_secret = current_app.config["MPESA_CONSUMER_SECRET"]
+    consumer_secret = current_app.config["MPESA_CONSUMER_SECRET"]  # Used here
     api_url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
-    r = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
-
-    logging.debug(f"MPesa API Response: {r.text}")  
+    auth_header = {
+        "Authorization": f"Basic {base64.b64encode(f'{consumer_key}:{consumer_secret}'.encode()).decode()}"
+    }
 
     try:
-        mpesa_access_token = json.loads(r.text)
+        r = requests.get(api_url, headers=auth_header)
+        mpesa_access_token = r.json()
         return mpesa_access_token["access_token"]
-    except json.JSONDecodeError as e:
-        logging.error(f"JSON decoding failed: {e}")
-        logging.error(f"Response content: {r.text}")
-        raise ValueError("Failed to decode JSON from MPesa API response")
+    except Exception as e:
+        logging.error(f"Error fetching M-Pesa access token: {e}")
+        raise
 
 
 def lipa_na_mpesa_online(phone_number, amount, order_id):
@@ -61,49 +61,6 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
 
 
 def mpesa_callback():
-    data = request.json  
-
-    callback = data.get("Body", {}).get("stkCallback", {})
-    merchant_request_id = callback.get("MerchantRequestID")
-    checkout_request_id = callback.get("CheckoutRequestID")
-    result_code = callback.get("ResultCode")
-    result_desc = callback.get("ResultDesc")
-
-    amount = None
-    mpesa_receipt_number = None
-    transaction_date = None
-    phone_number = None
-
-    callback_metadata = callback.get("CallbackMetadata", {}).get("Item", [])
-    for item in callback_metadata:
-        name = item.get("Name")
-        value = item.get("Value")
-        if name == "Amount":
-            amount = decimal.Decimal(value)
-        elif name == "MpesaReceiptNumber":
-            mpesa_receipt_number = value
-        elif name == "TransactionDate":
-            transaction_date = datetime.strptime(str(value), "%Y%m%d%H%M%S")
-        elif name == "PhoneNumber":
-            phone_number = value
-
-    order_id = None
-    if "AccountReference" in data:
-        order_id = data["AccountReference"]
-
-    mpesa_transaction = MpesaTransaction(
-        merchant_request_id=merchant_request_id,
-        checkout_request_id=checkout_request_id,
-        result_code=result_code,
-        result_description=result_desc,
-        amount=amount,
-        mpesa_receipt_number=mpesa_receipt_number,
-        transaction_date=transaction_date,
-        phone_number=phone_number,
-        order_id=order_id,
-    )
-
-    db.session.add(mpesa_transaction)
-    db.session.commit()
-
-    return {"ResultCode": 0, "ResultDesc": "Accepted"}
+    data = json.loads(request.data)
+    print("M-Pesa Callback data: ", data)
+    return data
