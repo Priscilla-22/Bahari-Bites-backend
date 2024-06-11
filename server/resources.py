@@ -7,7 +7,7 @@ from flask_restful import Resource, reqparse
 from .models import db, User, Order, OrderItem, MenuItem, Reservation, Inventory,Cart,CartItem
 from datetime import datetime,time
 from .mpesa import lipa_na_mpesa_online, mpesa_callback
-import decimal
+from decimal import Decimal
 from twilio.rest import Client
 import os
 
@@ -247,44 +247,62 @@ class OrderResource(Resource):
         current_user_id = get_jwt_identity()
         user_cart = Cart.query.filter_by(user_id=current_user_id).first()
         if not user_cart:
-            return {"message": "Cart is empty"}
+            return {"message": "Cart is empty"}, 400
 
         parser = reqparse.RequestParser()
         parser.add_argument(
-            "phone_number", type=str, required=True, help="Phone number is required for payment"
+            "phone_number",
+            type=str,
+            required=True,
+            help="Phone number is required for payment",
         )
         args = parser.parse_args()
 
-        total_amount = decimal.Decimal(0)
+        total_amount = Decimal(0)
         order_items = []
         for cart_item in user_cart.items:
             order_items.append(
                 OrderItem(
-                    menu_item_id=cart_item.menu_item_id,
-                    quantity=cart_item.quantity
+                    menu_item_id=cart_item.menu_item_id, quantity=cart_item.quantity
                 )
             )
             total_amount += cart_item.menu_item.price * cart_item.quantity
 
+        if total_amount < Decimal(10) or total_amount > Decimal(70000):
+            return {"message": "Invalid total amount for M-Pesa transaction"}, 400
+
+        total_amount_formatted = "{:.2f}".format(total_amount)
+
         order = Order(
             user_id_order=current_user_id,
             order_date=datetime.utcnow(),
-            status="Pending",  # or any default status
-            phone_number=args["phone_number"]
+            status="Pending",  
+            phone_number=args["phone_number"],
         )
         order.order_items = order_items
         db.session.add(order)
         db.session.commit()
 
-        payment_response = lipa_na_mpesa_online(args["phone_number"], total_amount, order.id)
+        payment_response = lipa_na_mpesa_online(
+            args["phone_number"], total_amount_formatted, order.id
+        )
         if payment_response.get("ResponseCode") == "0":
-            # Clear the cart after successful order creation
             CartItem.query.filter_by(cart_id=user_cart.id).delete()
             db.session.commit()
 
-            return {"message": "Order created and payment initiated successfully", "order_id": order.id}, 201
+            return {
+                "message": "Order created and payment initiated successfully",
+                "order_id": order.id,
+            }, 201
         else:
-            return {"message": "Order created but payment failed", "order_id": order.id, "payment_error": payment_response}, 400
+            return {
+                "message": "Order created but payment failed",
+                "order_id": order.id,
+                "payment_error": payment_response,
+            }, 400
+            
+            
+
     def send_order_confirmation_sms(self, order_id, phone_number, forwarding_number):
         order = Order.query.get(order_id)
         if not order:
@@ -296,7 +314,7 @@ class OrderResource(Resource):
 
         message = f"Order Confirmation\nOrder ID: {order.id}\nEstimated Delivery: 30 mins\nOrder Summary:\n{order_summary}"
         self.send_sms(phone_number, message, forwarding_number)
-        
+
     def send_sms(self, phone_number, message, forwarding_number):
         account_sid = os.getenv("TWILIO_ACCOUNT_SID")
         auth_token = os.getenv("TWILIO_AUTH_TOKEN")
