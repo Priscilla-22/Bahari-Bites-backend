@@ -23,7 +23,9 @@ api.add_resource(UserLogin, "/login")
 api.add_resource(
     OrderResource, "/orders", "/orders/<int:order_id>", "/orders/<int:order_id>/status"
 )
-api_bp.route("/mpesa/callback", methods=["POST"])(mpesa_callback)
+@api_bp.route("/mpesa/callback", methods=["POST"])
+def mpesa_callback_route():
+    return mpesa_callback()
 api.add_resource(
     OrderItemResource,
     "/orders/<int:order_id>/items",
