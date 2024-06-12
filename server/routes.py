@@ -1,5 +1,5 @@
 # server/routes.py
-from flask import Blueprint
+from flask import Blueprint, send_file
 from flask_restful import Api
 from .resources import (
     HomeResource,
@@ -13,6 +13,8 @@ from .resources import (
     InventoryResource,
 )
 from .mpesa import simulate_mpesa_callback
+import os
+
 
 api_bp = Blueprint("api", __name__)
 api = Api(api_bp)
@@ -45,3 +47,13 @@ api.add_resource(InventoryResource, "/inventory", "/inventory/<int:inventory_id>
 api.add_resource(
     CartResource, "/cart", "/cart/<int:menu_item_id>"
 ) 
+
+# download the SQLite database file.
+@api_bp.route("/download_db", methods=["GET"])
+def download_db():
+    db_path = os.path.join(
+        os.path.dirname(__file__), "..", "instance", "Bahari-Bites.sqlite"
+    )
+    return send_file(
+        db_path, as_attachment=True, attachment_filename="Bahari-Bites.sqlite"
+    )
