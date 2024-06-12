@@ -12,7 +12,7 @@ from .resources import (
     ReservationResource,
     InventoryResource,
 )
-from .mpesa import mpesa_callback
+from .mpesa import simulate_mpesa_callback
 
 api_bp = Blueprint("api", __name__)
 api = Api(api_bp)
@@ -23,9 +23,14 @@ api.add_resource(UserLogin, "/login")
 api.add_resource(
     OrderResource, "/orders", "/orders/<int:order_id>", "/orders/<int:order_id>/status"
 )
-@api_bp.route("/mpesa/callback", methods=["POST"])
-def mpesa_callback_route():
-    return mpesa_callback()
+api_bp.add_url_rule(
+    "/mpesa/callback",
+    "simulate_mpesa_callback",
+    simulate_mpesa_callback,
+    methods=["POST"],
+)
+
+
 api.add_resource(
     OrderItemResource,
     "/orders/<int:order_id>/items",

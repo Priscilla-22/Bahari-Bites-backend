@@ -267,6 +267,13 @@ class OrderResource(Resource):
             required=True,
             help="Phone number is required for payment",
         )
+        parser.add_argument(
+            "simulate",
+            type=bool,
+            required=False,
+            default=False,
+            help="Set to true to simulate M-Pesa transaction",
+        )
         args = parser.parse_args()
 
         total_amount = Decimal(0)
@@ -287,15 +294,15 @@ class OrderResource(Resource):
         order = Order(
             user_id_order=current_user_id,
             order_date=datetime.utcnow(),
-            status="Pending",  
+            status="Pending",
             phone_number=args["phone_number"],
         )
         order.order_items = order_items
         db.session.add(order)
         db.session.commit()
 
-        payment_response = lipa_na_mpesa_online(
-            args["phone_number"], total_amount_formatted, order.id
+        payment_response = initiate_mpesa_transaction(
+            args["phone_number"], total_amount_formatted, order.id, simulate=args["simulate"]
         )
         if payment_response.get("ResponseCode") == "0":
             CartItem.query.filter_by(cart_id=user_cart.id).delete()
