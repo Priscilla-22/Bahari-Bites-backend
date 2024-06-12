@@ -17,7 +17,7 @@ from .models import (
     MpesaTransaction,
 )
 from datetime import datetime,time
-from .mpesa import lipa_na_mpesa_online, mpesa_callback
+from .mpesa import lipa_na_mpesa_online, simulate_mpesa_callback
 from decimal import Decimal
 from twilio.rest import Client
 import os
