@@ -56,9 +56,7 @@ def download_db():
     db_path = os.path.join(
         os.path.dirname(__file__), "..", "instance", "Bahari-Bites.sqlite"
     )
-    response = Response(
-        send_file(db_path, as_attachment=True, download_name="Bahari-Bites.sqlite")
-    )
+    response = send_file(db_path, as_attachment=True, download_name="Bahari-Bites.sqlite")
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
