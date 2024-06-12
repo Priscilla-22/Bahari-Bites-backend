@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 from flask import current_app
 import logging
-import decimal
+from decimal import Decimal
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -61,6 +61,40 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
 
 
 def mpesa_callback():
-    data = json.loads(request.data)
-    print("M-Pesa Callback data: ", data)
+    data = request.json
+    logging.info(f"M-Pesa Callback data: {data}")
+
+    result_code = data['Body']['stkCallback']['ResultCode']
+    result_desc = data['Body']['stkCallback']['ResultDesc']
+    merchant_request_id = data['Body']['stkCallback']['MerchantRequestID']
+    checkout_request_id = data['Body']['stkCallback']['CheckoutRequestID']
+    callback_metadata = data['Body']['stkCallback']['CallbackMetadata']['Item']
+
+    amount = next(item['Value'] for item in callback_metadata if item['Name'] == 'Amount')
+    mpesa_receipt_number = next(item['Value'] for item in callback_metadata if item['Name'] == 'MpesaReceiptNumber')
+    transaction_date = next(item['Value'] for item in callback_metadata if item['Name'] == 'TransactionDate')
+    phone_number = next(item['Value'] for item in callback_metadata if item['Name'] == 'PhoneNumber')
+
+    order_id = request.args.get('order_id')
+
+    if not order_id:
+        logging.error("Order ID not found in callback request")
+        return {"ResultCode": 1, "ResultDesc": "Order ID not found"}, 400
+
+    
+    
+    transaction = MpesaTransaction(
+        merchant_request_id=merchant_request_id,
+        checkout_request_id=checkout_request_id,
+        result_code=result_code,
+        result_description=result_desc,
+        amount=Decimal(amount),
+        mpesa_receipt_number=mpesa_receipt_number,
+        transaction_date=datetime.strptime(str(transaction_date), "%Y%m%d%H%M%S"),
+        phone_number=phone_number,
+        order_id=order_id 
+    )
+    db.session.add(transaction)
+    db.session.commit()
+
     return {"ResultCode": 0, "ResultDesc": "Accepted"}
