@@ -306,11 +306,15 @@ class OrderResource(Resource):
         db.session.commit()
 
         payment_response = initiate_mpesa_transaction(
-            args["phone_number"], total_amount_formatted, order.id, simulate=args["simulate"]
+            args["phone_number"],
+            total_amount_formatted,
+            order.id,
+            simulate=args["simulate"],
         )
+
         if args["simulate"]:
-           simulate_mpesa_callback(payment_response, order.id)
-           
+            simulate_mpesa_callback(payment_response, order.id)
+
         if payment_response.get("ResponseCode") == "0":
             CartItem.query.filter_by(cart_id=user_cart.id).delete()
             db.session.commit()
@@ -336,7 +340,6 @@ class OrderResource(Resource):
             return mpesa_transaction.phone_number
         return None
 
-    
     def send_order_confirmation_sms(self, order_id, phone_number, forwarding_number):
         order = Order.query.get(order_id)
         if not order:
