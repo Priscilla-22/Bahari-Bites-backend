@@ -55,8 +55,11 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
         "AccountReference": order_id,
         "TransactionDesc": "Payment for order {}".format(order_id),
     }
+    logging.info(f"Payload sent to M-Pesa API: {payload}") 
 
     response = requests.post(api_url, json=payload, headers=headers)
+    logging.info(f"M-Pesa API response: {response.json()}")  
+
     return response.json()
 
 
@@ -73,7 +76,6 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
         "CustomerMessage": "Success. Request accepted for processing",
     }
 
-    # Simulate successful callback
     simulate_mpesa_callback(
         {
             "Body": {
@@ -97,7 +99,7 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
             }
         }
     )
-
+    logging.info(f"Simulated M-Pesa API response: {response}")
     return response
 
 
