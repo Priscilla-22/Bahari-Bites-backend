@@ -290,7 +290,7 @@ class OrderResource(Resource):
             )
             total_amount += cart_item.menu_item.price * cart_item.quantity
 
-        if total_amount < Decimal(0) or total_amount > Decimal(70000):
+        if total_amount < Decimal(0.00) or total_amount > Decimal(70000.00):
             return {"message": "Invalid total amount for M-Pesa transaction"}, 400
 
         total_amount_formatted = "{:.2f}".format(total_amount)
