@@ -8,7 +8,6 @@ from flask_migrate import Migrate,upgrade
 from dotenv import load_dotenv
 import os
 from flask_jwt_extended import JWTManager
-import logging
 
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
@@ -32,11 +31,6 @@ def create_app():
 
     with app.app_context():
         upgrade()
-        
-    if not app.debug:
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.INFO)
-        app.logger.addHandler(handler)    
         
     from .routes import api_bp
 
