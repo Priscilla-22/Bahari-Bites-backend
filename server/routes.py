@@ -1,6 +1,7 @@
 # server/routes.py
 from flask import Blueprint, send_file
 from flask_restful import Api
+from flask import Response
 from .resources import (
     HomeResource,
     UserRegistration,
@@ -48,12 +49,17 @@ api.add_resource(
     CartResource, "/cart", "/cart/<int:menu_item_id>"
 ) 
 
+
 # download the SQLite database file.
 @api_bp.route("/download_db", methods=["GET"])
 def download_db():
     db_path = os.path.join(
         os.path.dirname(__file__), "..", "instance", "Bahari-Bites.sqlite"
     )
-    return send_file(
-        db_path, as_attachment=True, download_name="Bahari-Bites.sqlite"
+    response = Response(
+        send_file(db_path, as_attachment=True, download_name="Bahari-Bites.sqlite")
     )
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
