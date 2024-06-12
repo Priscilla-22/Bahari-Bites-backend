@@ -1,5 +1,5 @@
 # server/routes.py
-from flask import Blueprint, send_file
+from flask import Blueprint, send_file, current_app, jsonify
 from flask_restful import Api
 from .resources import (
     HomeResource,
@@ -48,12 +48,21 @@ api.add_resource(
     CartResource, "/cart", "/cart/<int:menu_item_id>"
 ) 
 
+
 # download the SQLite database file.
 @api_bp.route("/download_db", methods=["GET"])
 def download_db():
-    db_path = os.path.join(
-        os.path.dirname(__file__), "..", "instance", "Bahari-Bites.sqlite"
-    )
-    return send_file(
-        db_path, as_attachment=True, attachment_filename="Bahari-Bites.sqlite"
-    )
+    try:
+        db_path = os.path.join(
+            os.path.dirname(__file__), "..", "instance", "Bahari-Bites.sqlite"
+        )
+        current_app.logger.info(f"Database path: {db_path}")
+        if not os.path.exists(db_path):
+            current_app.logger.error(f"Database file not found at {db_path}")
+            return jsonify({"error": "Database file not found"}), 404
+        return send_file(
+            db_path, as_attachment=True, attachment_filename="Bahari-Bites.sqlite"
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error downloading database: {str(e)}")
+        return jsonify({"error": "Internal Server Error"}), 500
