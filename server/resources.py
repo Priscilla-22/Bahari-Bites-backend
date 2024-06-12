@@ -308,6 +308,9 @@ class OrderResource(Resource):
         payment_response = initiate_mpesa_transaction(
             args["phone_number"], total_amount_formatted, order.id, simulate=args["simulate"]
         )
+        if args["simulate"]:
+           simulate_mpesa_callback(payment_response, order.id)
+           
         if payment_response.get("ResponseCode") == "0":
             CartItem.query.filter_by(cart_id=user_cart.id).delete()
             db.session.commit()
