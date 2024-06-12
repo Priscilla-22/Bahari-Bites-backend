@@ -42,14 +42,12 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
     data_to_encode = shortcode + passkey + timestamp
     online_password = base64.b64encode(data_to_encode.encode()).decode("utf-8")
     
-    formatted_amount = int(amount * 100)
-
     payload = {
         "BusinessShortCode": shortcode,
         "Password": online_password,
         "Timestamp": timestamp,
         "TransactionType": "CustomerPayBillOnline",
-        "Amount": str(formatted_amount),
+        "Amount": str(amount),
         "PartyA": phone_number,
         "PartyB": shortcode,
         "PhoneNumber": phone_number,
