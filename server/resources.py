@@ -25,6 +25,8 @@ from .mpesa import (
 from decimal import Decimal
 from twilio.rest import Client
 import os
+import logging
+from flask import current_app
 
 
 class HomeResource(Resource):
@@ -288,7 +290,10 @@ class OrderResource(Resource):
                     menu_item_id=cart_item.menu_item_id, quantity=cart_item.quantity
                 )
             )
+        
             total_amount += cart_item.menu_item.price * cart_item.quantity
+        current_app.logger.info(f"Total amount calculated: {total_amount}")
+
 
         if total_amount < Decimal(0) or total_amount > Decimal(70000):
             return {"message": "Invalid total amount for M-Pesa transaction"}, 400
