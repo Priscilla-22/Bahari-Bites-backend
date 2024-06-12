@@ -4,7 +4,7 @@ import os
 
 class Config:
     SQLALCHEMY_DATABASE_URI = (
-        os.environ.get("DATABASE_URI") or "sqlite:///Bahari-Bites.sqlite"
+        os.environ.get("DATABASE_URI") or "sqlite:///Bahari-Bites.db"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MPESA_CONSUMER_KEY = os.environ.get("MPESA_CONSUMER_KEY")
