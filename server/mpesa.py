@@ -47,7 +47,7 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
         "Password": online_password,
         "Timestamp": timestamp,
         "TransactionType": "CustomerPayBillOnline",
-        "Amount": str(amount),
+        "Amount": amount,
         "PartyA": phone_number,
         "PartyB": shortcode,
         "PhoneNumber": phone_number,
