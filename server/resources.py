@@ -283,7 +283,7 @@ class OrderResource(Resource):
         )
         args = parser.parse_args()
 
-        total_amount = Decimal(0)
+        total_amount = Decimal(0.00)
         order_items = []
         for cart_item in user_cart.items:
             order_items.append(
