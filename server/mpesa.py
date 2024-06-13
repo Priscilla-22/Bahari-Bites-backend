@@ -1,6 +1,6 @@
 # server/mpesa.py
 
-from flask import request
+from flask import request,jsonify
 from .models import db, MpesaTransaction
 import requests
 from requests.auth import HTTPBasicAuth
@@ -85,6 +85,7 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
     }
 
     callback_data={
+            "order_id":order_id,
             "Body": {
                 "stkCallback": {
                     "MerchantRequestID": response["MerchantRequestID"],
@@ -105,7 +106,7 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
                 }
             }
     }
-    simulate_mpesa_callback(callback_data,order_id)
+    simulate_mpesa_callback()
     logging.info(f"Simulated M-Pesa API response: {response}")
     return response
 
@@ -158,9 +159,8 @@ def simulate_mpesa_callback():
     """
     Simulate M-Pesa callback to mimic real-world scenario for testing.
     """
-
     data = request.get_json()
-    order_id = request.args.get("order_id")
+    order_id = data.get("order_id")
 
     if data is None:
         logging.error("No callback data provided")
