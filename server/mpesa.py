@@ -105,7 +105,7 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
                 }
             }
     }
-    simulate_mpesa_callback(callback_data)
+    simulate_mpesa_callback(callback_data,order_id)
     logging.info(f"Simulated M-Pesa API response: {response}")
     return response
 
@@ -154,10 +154,14 @@ def initiate_mpesa_transaction(phone_number, amount, order_id, simulate=False):
         return lipa_na_mpesa_online(phone_number, amount, order_id)
 
 
-def simulate_mpesa_callback(data):
+def simulate_mpesa_callback(data, order_id):
     """
     Simulate M-Pesa callback to mimic real-world scenario for testing.
     """
+    if data is None:
+        logging.error("No callback data provided")
+        return {"ResultCode": 1, "ResultDesc": "No callback data provided"}, 400
+    
     logging.info(f"M-Pesa Callback data: {data}")
 
     result_code = data["Body"]["stkCallback"]["ResultCode"]
