@@ -41,13 +41,22 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
     passkey = current_app.config["MPESA_PASSKEY"]
     data_to_encode = shortcode + passkey + timestamp
     online_password = base64.b64encode(data_to_encode.encode()).decode("utf-8")
-    
+
+    if isinstance(amount, Decimal):
+        amount = int(amount)
+    elif isinstance(amount, (float, int)):
+        amount = int(amount)
+    else:
+        raise ValueError(
+            "Invalid amount type. Amount should be a Decimal, float, or int."
+        )
+
     payload = {
         "BusinessShortCode": shortcode,
         "Password": online_password,
         "Timestamp": timestamp,
         "TransactionType": "CustomerPayBillOnline",
-        "Amount": str(amount),
+        "Amount": amount,
         "PartyA": phone_number,
         "PartyB": shortcode,
         "PhoneNumber": phone_number,
@@ -76,7 +85,6 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
     }
 
     callback_data={
-        
             "Body": {
                 "stkCallback": {
                     "MerchantRequestID": response["MerchantRequestID"],
@@ -96,7 +104,6 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
                     },
                 }
             }
-        
     }
     simulate_mpesa_callback(callback_data)
     logging.info(f"Simulated M-Pesa API response: {response}")
@@ -143,6 +150,7 @@ def initiate_mpesa_transaction(phone_number, amount, order_id, simulate=False):
         return simulate_mpesa_api_call(phone_number, amount, order_id)
     else:
         amount = Decimal(amount)
+        logging.info(f"Initiating M-Pesa transaction with amount: {amount}")
         return lipa_na_mpesa_online(phone_number, amount, order_id)
 
 
