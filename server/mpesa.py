@@ -85,7 +85,6 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
     }
 
     callback_data={
-            "order_id":order_id,
             "Body": {
                 "stkCallback": {
                     "MerchantRequestID": response["MerchantRequestID"],
@@ -106,7 +105,8 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
                 }
             }
     }
-    simulate_mpesa_callback()
+    with current_app.test_request_context('/mpesa/callback', json=callback_data, query_string={'order_id': order_id}):
+        simulate_mpesa_callback()
     logging.info(f"Simulated M-Pesa API response: {response}")
     return response
 
@@ -159,8 +159,9 @@ def simulate_mpesa_callback():
     """
     Simulate M-Pesa callback to mimic real-world scenario for testing.
     """
+
     data = request.get_json()
-    order_id = data.get("order_id")
+    order_id = request.args.get("order_id")
 
     if data is None:
         logging.error("No callback data provided")
