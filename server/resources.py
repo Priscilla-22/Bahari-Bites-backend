@@ -298,8 +298,7 @@ class OrderResource(Resource):
         if total_amount < Decimal(0) or total_amount > Decimal(70000):
             return {"message": "Invalid total amount for M-Pesa transaction"}, 400
 
-        total_amount_cents = int(total_amount * 100)
-        total_amount_formatted = str(total_amount_cents)
+        total_amount_formatted = str(total_amount)
         current_app.logger.info(
             f"Formatted total amount for M-Pesa transaction: {total_amount_formatted}"
         )
@@ -316,7 +315,7 @@ class OrderResource(Resource):
 
         payment_response = initiate_mpesa_transaction(
             args["phone_number"],
-            total_amount_formatted,
+            total_amount,
             order.id,
             simulate=args["simulate"],
         )
