@@ -1,5 +1,5 @@
 # server/routes.py
-from flask import Blueprint, send_file
+from flask import Blueprint, send_file,request,jsonify
 from flask_restful import Api
 from flask import Response
 from .resources import (
@@ -26,12 +26,12 @@ api.add_resource(UserLogin, "/login")
 api.add_resource(
     OrderResource, "/orders", "/orders/<int:order_id>", "/orders/<int:order_id>/status"
 )
-api_bp.add_url_rule(
-    "/mpesa/callback",
-    "simulate_mpesa_callback",
-    simulate_mpesa_callback,
-    methods=["POST"],
-)
+# api_bp.add_url_rule(
+#     "/mpesa/callback",
+#     "simulate_mpesa_callback",
+#     simulate_mpesa_callback,
+#     methods=["POST"],
+# )
 
 
 api.add_resource(
@@ -48,6 +48,23 @@ api.add_resource(InventoryResource, "/inventory", "/inventory/<int:inventory_id>
 api.add_resource(
     CartResource, "/cart", "/cart/<int:menu_item_id>"
 ) 
+
+
+# Route for M-Pesa callback
+@api_bp.route("/mpesa/callback", methods=["POST"])
+def mpesa_callback():
+    try:
+        data = request.json  
+        order_id = data.get("order_id") 
+        if not order_id:
+            return jsonify({"error": "Order ID not found in callback data"}), 400
+
+        result = simulate_mpesa_callback(data, order_id)
+        return jsonify(result), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
 
 # download the SQLite database file.
