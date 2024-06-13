@@ -67,7 +67,6 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
     """
     Simulates an M-Pesa API call for testing purposes.
     """
-    # Mock response
     response = {
         "MerchantRequestID": "12345",
         "CheckoutRequestID": "67890",

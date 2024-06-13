@@ -297,8 +297,10 @@ class OrderResource(Resource):
 
         if total_amount < Decimal(0) or total_amount > Decimal(70000):
             return {"message": "Invalid total amount for M-Pesa transaction"}, 400
-
-        total_amount_formatted = "{:.2f}".format(total_amount)
+        
+        total_amount_cents = int(total_amount * 100)
+        total_amount_formatted = "{:.2f}".format(total_amount_cents)
+        current_app.logger.info(f"Formatted total amount for M-Pesa transaction: {total_amount_formatted}")
 
         order = Order(
             user_id_order=current_user_id,
