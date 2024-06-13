@@ -102,6 +102,37 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
     return response
 
 
+def simulate_mpesa_reversal(original_transaction_id, amount):
+    """
+    Simulates an M-Pesa reversal API call for testing purposes.
+    """
+    access_token = get_mpesa_access_token()
+    api_url = "https://sandbox.safaricom.co.ke/mpesa/reversal/v1/request"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "Initiator": "testapi",
+        "SecurityCredential": "testapi123",
+        "CommandID": "TransactionReversal",
+        "TransactionID": original_transaction_id,
+        "Amount": amount,
+        "ReceiverParty": current_app.config["MPESA_SHORTCODE"],
+        "Remarks": "Testing reversal",
+        "QueueTimeOutURL": current_app.config["MPESA_CALLBACK_URL"],
+        "ResultURL": current_app.config["MPESA_CALLBACK_URL"],
+    }
+
+    logging.info(f"Payload sent for M-Pesa reversal: {payload}")
+
+    response = requests.post(api_url, json=payload, headers=headers)
+    logging.info(f"M-Pesa reversal API response: {response.json()}")
+
+    return response.json()
+
+
 def initiate_mpesa_transaction(phone_number, amount, order_id, simulate=False):
     if simulate:
         return simulate_mpesa_api_call(phone_number, amount, order_id)
