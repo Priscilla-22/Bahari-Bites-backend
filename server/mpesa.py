@@ -120,6 +120,7 @@ def reverse_mpesa_transaction(original_transaction_id, amount):
         "TransactionID": original_transaction_id,
         "Amount": amount,
         "ReceiverParty": 174379,
+        "RecieverIdentifierType": 11,
         "Remarks": "Incorrect transaction amount reversal",
         "QueueTimeOutURL": current_app.config["MPESA_CALLBACK_URL"],
         "ResultURL": current_app.config["MPESA_CALLBACK_URL"],
