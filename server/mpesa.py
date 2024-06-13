@@ -167,6 +167,9 @@ def simulate_mpesa_callback():
         logging.error("No callback data provided")
         return {"ResultCode": 1, "ResultDesc": "No callback data provided"}, 400
 
+    if not order_id:
+        order_id = data.get("order_id")
+        
     logging.info(f"M-Pesa Callback data: {data}")
 
     result_code = data["Body"]["stkCallback"]["ResultCode"]
