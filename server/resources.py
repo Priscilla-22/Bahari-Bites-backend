@@ -1,5 +1,6 @@
 # server/resources.py
 from flask import jsonify,request
+from twilio.base.exceptions import TwilioRestException
 from flask_jwt_extended import jwt_required, get_jwt_identity,create_access_token
 from flask_socketio import emit
 from server.app import socketio
@@ -358,6 +359,8 @@ class OrderResource(Resource):
         )
 
         message = f"Order Confirmation\nOrder ID: {order.id}\nEstimated Delivery: 30 mins\nOrder Summary:\n{order_summary}"
+        current_app.logger.info(f"Sending SMS to: {phone_number}")
+
         self.send_sms(phone_number, message, forwarding_number)
 
     def send_sms(self, phone_number, message, forwarding_number):
@@ -367,18 +370,24 @@ class OrderResource(Resource):
 
         client = Client(account_sid, auth_token)
 
-        client.messages.create(
-            body=message,
-            from_=from_number,
-            to=phone_number
-        )
+        try:
+            client.messages.create(
+                body=message,
+                from_=from_number,
+                to=phone_number
+            )
 
-        client.messages.create(
-            body=f"Forwarded Message: {message}",
-            from_=from_number,
-            to=forwarding_number
-        )
+            if forwarding_number:
+                client.messages.create(
+                    body=f"Forwarded Message: {message}",
+                    from_=from_number,
+                    to=forwarding_number
+                )
 
+        except TwilioRestException as e:
+            current_app.logger.error(f"Twilio Error: {e}")
+            
+            
     def put(self, order_id):
         parser = reqparse.RequestParser()
         parser.add_argument("status", type=str, required=False)
