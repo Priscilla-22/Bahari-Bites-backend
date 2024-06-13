@@ -1,6 +1,6 @@
 # server/routes.py
-from flask import Blueprint, send_file,request,jsonify
-from flask_restful import Api
+from flask import Blueprint, send_file, request, jsonify, current_app
+from flask_restful import Api, Resource, reqparse
 from flask import Response
 from .resources import (
     HomeResource,
@@ -15,7 +15,7 @@ from .resources import (
 )
 from .mpesa import simulate_mpesa_callback
 import os
-
+from .models import db
 
 api_bp = Blueprint("api", __name__)
 api = Api(api_bp)
@@ -26,13 +26,6 @@ api.add_resource(UserLogin, "/login")
 api.add_resource(
     OrderResource, "/orders", "/orders/<int:order_id>", "/orders/<int:order_id>/status"
 )
-# api_bp.add_url_rule(
-#     "/mpesa/callback",
-#     "simulate_mpesa_callback",
-#     simulate_mpesa_callback,
-#     methods=["POST"],
-# )
-
 
 api.add_resource(
     OrderItemResource,
@@ -64,7 +57,6 @@ def mpesa_callback():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
 
 
 # download the SQLite database file.
