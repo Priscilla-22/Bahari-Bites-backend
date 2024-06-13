@@ -1,5 +1,4 @@
 # run.py
-# run.py
 from server.app import create_app
 
 if __name__ == "__main__":

@@ -39,6 +39,7 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     shortcode = current_app.config["MPESA_SHORTCODE"]
     passkey = current_app.config["MPESA_PASSKEY"]
+    amount_cents = int(float(amount) * 100)
     data_to_encode = shortcode + passkey + timestamp
     online_password = base64.b64encode(data_to_encode.encode()).decode("utf-8")
     
@@ -47,7 +48,7 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
         "Password": online_password,
         "Timestamp": timestamp,
         "TransactionType": "CustomerPayBillOnline",
-        "Amount": amount,
+        "Amount": amount_cents,
         "PartyA": phone_number,
         "PartyB": shortcode,
         "PhoneNumber": phone_number,
