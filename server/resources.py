@@ -322,7 +322,7 @@ class OrderResource(Resource):
         )
 
         if args["simulate"]:
-            simulate_mpesa_callback(payment_response, order.id)
+            simulate_mpesa_callback(payment_response)
 
         if payment_response.get("ResponseCode") == "0":
             CartItem.query.filter_by(cart_id=user_cart.id).delete()
