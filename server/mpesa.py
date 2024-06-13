@@ -47,7 +47,7 @@ def lipa_na_mpesa_online(phone_number, amount, order_id):
         "Password": online_password,
         "Timestamp": timestamp,
         "TransactionType": "CustomerPayBillOnline",
-        "Amount": amount,
+        "Amount": str(amount),
         "PartyA": phone_number,
         "PartyB": shortcode,
         "PhoneNumber": phone_number,
@@ -142,6 +142,7 @@ def initiate_mpesa_transaction(phone_number, amount, order_id, simulate=False):
     if simulate:
         return simulate_mpesa_api_call(phone_number, amount, order_id)
     else:
+        amount = Decimal(amount)
         return lipa_na_mpesa_online(phone_number, amount, order_id)
 
 
