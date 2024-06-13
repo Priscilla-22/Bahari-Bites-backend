@@ -136,13 +136,6 @@ def reverse_mpesa_transaction(original_transaction_id, amount):
         raise
 
 
-original_transaction_id = "SFD3DXL5ID"  # Replace with the actual transaction ID
-amount_to_reverse = 100  # Replace with the actual amount to reverse
-
-reverse_result = reverse_mpesa_transaction(original_transaction_id, amount_to_reverse)
-print(reverse_result)
-
-
 def initiate_mpesa_transaction(phone_number, amount, order_id, simulate=False):
     if simulate:
         return simulate_mpesa_api_call(phone_number, amount, order_id)
