@@ -102,10 +102,7 @@ def simulate_mpesa_api_call(phone_number, amount, order_id):
     return response
 
 
-def simulate_mpesa_reversal(original_transaction_id, amount):
-    """
-    Simulates an M-Pesa reversal API call for testing purposes.
-    """
+def reverse_mpesa_transaction(original_transaction_id, amount):
     access_token = get_mpesa_access_token()
     api_url = "https://sandbox.safaricom.co.ke/mpesa/reversal/v1/request"
     headers = {
@@ -113,24 +110,37 @@ def simulate_mpesa_reversal(original_transaction_id, amount):
         "Content-Type": "application/json",
     }
 
+    shortcode = current_app.config["MPESA_SHORTCODE"]
+    security_credential = current_app.config["MPESA_SECURITY_CREDENTIAL"]
+
     payload = {
         "Initiator": "testapi",
-        "SecurityCredential": "testapi123",
+        "SecurityCredential": security_credential,
         "CommandID": "TransactionReversal",
         "TransactionID": original_transaction_id,
         "Amount": amount,
-        "ReceiverParty": current_app.config["MPESA_SHORTCODE"],
-        "Remarks": "Testing reversal",
+        "ReceiverParty": shortcode,
+        "Remarks": "Incorrect transaction amount reversal",
         "QueueTimeOutURL": current_app.config["MPESA_CALLBACK_URL"],
         "ResultURL": current_app.config["MPESA_CALLBACK_URL"],
     }
 
     logging.info(f"Payload sent for M-Pesa reversal: {payload}")
 
-    response = requests.post(api_url, json=payload, headers=headers)
-    logging.info(f"M-Pesa reversal API response: {response.json()}")
+    try:
+        response = requests.post(api_url, json=payload, headers=headers)
+        logging.info(f"M-Pesa reversal API response: {response.json()}")
+        return response.json()
+    except Exception as e:
+        logging.error(f"Error reversing transaction: {e}")
+        raise
 
-    return response.json()
+
+original_transaction_id = "SFD3DXL5ID"  # Replace with the actual transaction ID
+amount_to_reverse = 100  # Replace with the actual amount to reverse
+
+reverse_result = reverse_mpesa_transaction(original_transaction_id, amount_to_reverse)
+print(reverse_result)
 
 
 def initiate_mpesa_transaction(phone_number, amount, order_id, simulate=False):
