@@ -28,6 +28,7 @@ from twilio.rest import Client
 import os
 import logging
 from flask import current_app
+import re
 
 
 class HomeResource(Resource):
@@ -369,6 +370,11 @@ class OrderResource(Resource):
 
         client = Client(account_sid, auth_token)
 
+        phone_number = self.normalize_phone_number(phone_number)
+        if not phone_number or not self.validate_phone_number(phone_number):
+            current_app.logger.error(f"Invalid phone number format: {phone_number}")
+            return
+
         try:
             client.messages.create(
                 body=message,
@@ -377,14 +383,24 @@ class OrderResource(Resource):
             )
 
             if forwarding_number:
-                client.messages.create(
-                    body=f"Forwarded Message: {message}",
-                    from_=from_number,
-                    to=forwarding_number
-                )
+                forwarding_number = self.normalize_phone_number(forwarding_number)
+                if self.validate_phone_number(forwarding_number):
+                    client.messages.create(
+                        body=f"Forwarded Message: {message}",
+                        from_=from_number,
+                        to=forwarding_number
+                    )
 
         except TwilioRestException as e:
             current_app.logger.error(f"Twilio Error: {e}")
+
+    def normalize_phone_number(self, phone_number):
+        if not phone_number.startswith('+'):
+            phone_number = f'+{phone_number}'
+        return phone_number
+
+    def validate_phone_number(self, phone_number):
+        return re.match(r'^\+?[1-9]\d{1,14}$', phone_number) is not None
             
             
     def put(self, order_id):
