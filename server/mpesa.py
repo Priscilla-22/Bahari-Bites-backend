@@ -154,6 +154,9 @@ def initiate_mpesa_transaction(phone_number, amount, order_id, simulate=False):
         logging.info(f"Initiating M-Pesa transaction with amount: {amount}")
         return lipa_na_mpesa_online(phone_number, amount, order_id)
 
+
+# server/mpesa.py
+
 def simulate_mpesa_callback():
     """
     Simulate M-Pesa callback to mimic real-world scenario for testing.
@@ -168,7 +171,7 @@ def simulate_mpesa_callback():
 
     if not order_id:
         order_id = data.get("order_id")
-
+        
     logging.info(f"M-Pesa Callback data: {data}")
 
     result_code = data["Body"]["stkCallback"]["ResultCode"]
