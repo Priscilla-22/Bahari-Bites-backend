@@ -154,7 +154,6 @@ def initiate_mpesa_transaction(phone_number, amount, order_id, simulate=False):
         logging.info(f"Initiating M-Pesa transaction with amount: {amount}")
         return lipa_na_mpesa_online(phone_number, amount, order_id)
 
-
 def simulate_mpesa_callback():
     """
     Simulate M-Pesa callback to mimic real-world scenario for testing.
@@ -169,7 +168,7 @@ def simulate_mpesa_callback():
 
     if not order_id:
         order_id = data.get("order_id")
-        
+
     logging.info(f"M-Pesa Callback data: {data}")
 
     result_code = data["Body"]["stkCallback"]["ResultCode"]
@@ -193,24 +192,28 @@ def simulate_mpesa_callback():
         item["Value"] for item in callback_metadata if item["Name"] == "PhoneNumber"
     )
 
-    order_id = request.args.get("order_id")
-
     if not order_id:
         logging.error("Order ID not found in callback request")
         return {"ResultCode": 1, "ResultDesc": "Order ID not found"}, 400
 
-    transaction = MpesaTransaction(
-        merchant_request_id=merchant_request_id,
-        checkout_request_id=checkout_request_id,
-        result_code=result_code,
-        result_description=result_desc,
-        amount=Decimal(amount),
-        mpesa_receipt_number=mpesa_receipt_number,
-        transaction_date=datetime.strptime(str(transaction_date), "%Y%m%d%H%M%S"),
-        phone_number=phone_number,
-        order_id=order_id,
-    )
-    db.session.add(transaction)
-    db.session.commit()
+    try:
+        transaction = MpesaTransaction(
+            merchant_request_id=merchant_request_id,
+            checkout_request_id=checkout_request_id,
+            result_code=result_code,
+            result_description=result_desc,
+            amount=Decimal(amount),
+            mpesa_receipt_number=mpesa_receipt_number,
+            transaction_date=datetime.strptime(str(transaction_date), "%Y%m%d%H%M%S"),
+            phone_number=phone_number,
+            order_id=order_id,
+        )
+        db.session.add(transaction)
+        db.session.commit()
+        logging.info(f"Transaction saved: {transaction}")
+    except Exception as e:
+        logging.error(f"Error saving transaction: {e}")
+        db.session.rollback()
+        return {"ResultCode": 1, "ResultDesc": "Failed to save transaction"}, 500
 
     return {"ResultCode": 0, "ResultDesc": "Accepted"}
