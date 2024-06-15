@@ -155,7 +155,6 @@ def initiate_mpesa_transaction(phone_number, amount, order_id, simulate=False):
         return lipa_na_mpesa_online(phone_number, amount, order_id)
 
 
-# server/mpesa.py
 
 def simulate_mpesa_callback():
     """

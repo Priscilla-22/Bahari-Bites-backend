@@ -325,6 +325,21 @@ class OrderResource(Resource):
             simulate_mpesa_callback(payment_response)
 
         if payment_response.get("ResponseCode") == "0":
+            mpesa_transaction = MpesaTransaction(
+                merchant_request_id=payment_response["MerchantRequestID"],
+                checkout_request_id=payment_response["CheckoutRequestID"],
+                result_code=payment_response["ResponseCode"],
+                result_description=payment_response["ResponseDescription"],
+                amount=total_amount,
+                mpesa_receipt_number=payment_response.get("MpesaReceiptNumber"),
+                transaction_date=datetime.utcnow(),
+                phone_number=args["phone_number"],
+               order_id=order.id,
+            )
+            db.session.add(mpesa_transaction)
+            db.session.commit()
+
+      
             CartItem.query.filter_by(cart_id=user_cart.id).delete()
             db.session.commit()
 
