@@ -632,3 +632,25 @@ class InventoryResource(Resource):
         db.session.delete(inventory)
         db.session.commit()
         return {"message": "Inventory item deleted successfully"}
+
+
+class LiveChatResource(Resource):
+    @jwt_required()
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "message", type=str, required=True, help="Message is required"
+        )
+        parser.add_argument("room", type=str, required=True, help="Room is required")
+        args = parser.parse_args()
+
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        if not user:
+            return {"message": "User not found"}, 404
+
+        message = args["message"]
+        room = args["room"]
+
+        socketio.emit("message", {"msg": message, "username": user.username}, room=room)
+        return {"message": "Message sent"}

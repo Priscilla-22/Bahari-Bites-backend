@@ -19,17 +19,16 @@ socketio = SocketIO()
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    
-    CORS(app)
 
+    CORS(app)
 
     db.init_app(app)
     migrate = Migrate(app, db)
-    
-    socketio.init_app(app) 
+
+    # socketio.init_app(app)
+    socketio.init_app(app, cors_allowed_origins="*")
     jwt = JWTManager(app)
 
-    
     from .routes import api_bp
 
     app.register_blueprint(api_bp, url_prefix="/api")
