@@ -16,6 +16,7 @@ from .models import (
     Cart,
     CartItem,
     MpesaTransaction,
+    Branch
 )
 from datetime import datetime,time
 from .mpesa import (
@@ -89,7 +90,7 @@ class UserLogin(Resource):
         user = User.query.filter(
             (User.username == credential) | (User.email == credential)
         ).first()
-        
+
         if user and user.password == password:
 
             access_token = create_access_token(identity=user.id)
@@ -126,6 +127,9 @@ class MenuItemResource(Resource):
         parser.add_argument(
             "image_url", type=str, required=False, help="Image URL is optional"
         )
+        parser.add_argument(
+            "branch_id", type=int, required=True, help="Branch ID is required"
+        )
         args = parser.parse_args()
 
         menu_item = MenuItem(
@@ -133,6 +137,7 @@ class MenuItemResource(Resource):
             description=args.get("description"),
             price=args["price"],
             image_url=args.get("image_url"),
+            branch_id=args["branch_id"],
         )
         db.session.add(menu_item)
         db.session.commit()
@@ -147,8 +152,8 @@ class MenuItemResource(Resource):
         parser.add_argument("name", type=str, required=False)
         parser.add_argument("description", type=str, required=False)
         parser.add_argument("price", type=float, required=False)
-        parser.add_argument("image_url", type=str, required=False)  
-
+        parser.add_argument("image_url", type=str, required=False)
+        parser.add_argument("branch_id", type=int, required=False)
         args = parser.parse_args()
 
         menu_item = MenuItem.query.get(menu_item_id)
@@ -162,7 +167,10 @@ class MenuItemResource(Resource):
         if args["price"]:
             menu_item.price = args["price"]
         if args["image_url"]:
-            menu_item.image_url = args["image_url"] 
+            menu_item.image_url = args["image_url"]
+        if args["branch_id"]:
+            menu_item.branch_id = args["branch_id"]
+
         db.session.commit()
         return {"message": "Menu item updated successfully"}
 
@@ -654,3 +662,84 @@ class LiveChatResource(Resource):
 
         socketio.emit("message", {"msg": message, "username": user.username}, room=room)
         return {"message": "Message sent"}
+
+
+class BranchResource(Resource):
+    def get(self, branch_id):
+        branch = Branch.query.get(branch_id)
+        if not branch:
+            return {"message": "Branch not found"}, 404
+
+        return {
+            "id": branch.id,
+            "name": branch.name,
+            "location": branch.location,
+            "operating_hours": branch.operating_hours,
+            "contact_number": branch.contact_number,
+        }
+
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "name", type=str, required=True, help="Branch name is required"
+        )
+        parser.add_argument(
+            "location", type=str, required=True, help="Branch location is required"
+        )
+        parser.add_argument(
+            "operating_hours",
+            type=str,
+            required=True,
+            help="Operating hours are required",
+        )
+        parser.add_argument(
+            "contact_number", type=str, required=True, help="Contact number is required"
+        )
+        args = parser.parse_args()
+
+        branch = Branch(
+            name=args["name"],
+            location=args["location"],
+            operating_hours=args["operating_hours"],
+            contact_number=args["contact_number"],
+        )
+        db.session.add(branch)
+        db.session.commit()
+
+        return {
+            "message": "Branch created successfully",
+            "branch_id": branch.id,
+        }, 201
+
+    def put(self, branch_id):
+        parser = reqparse.RequestParser()
+        parser.add_argument("name", type=str, required=False)
+        parser.add_argument("location", type=str, required=False)
+        parser.add_argument("operating_hours", type=str, required=False)
+        parser.add_argument("contact_number", type=str, required=False)
+        args = parser.parse_args()
+
+        branch = Branch.query.get(branch_id)
+        if not branch:
+            return {"message": "Branch not found"}, 404
+
+        if args["name"]:
+            branch.name = args["name"]
+        if args["location"]:
+            branch.location = args["location"]
+        if args["operating_hours"]:
+            branch.operating_hours = args["operating_hours"]
+        if args["contact_number"]:
+            branch.contact_number = args["contact_number"]
+
+        db.session.commit()
+        return {"message": "Branch updated successfully"}
+
+    def delete(self, branch_id):
+        branch = Branch.query.get(branch_id)
+        if not branch:
+            return {"message": "Branch not found"}, 404
+
+        db.session.delete(branch)
+        db.session.commit()
+        return {"message": "Branch deleted successfully"}

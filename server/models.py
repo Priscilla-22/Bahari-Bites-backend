@@ -116,3 +116,11 @@ class ChatMessage(db.Model):
     message = db.Column(db.String(500), nullable=False)
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
     sender = db.relationship("User")
+
+
+class Branch(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    location = db.Column(db.String(255), nullable=False)
+    operating_hours = db.Column(db.String(255), nullable=False)
+    contact_number = db.Column(db.String(15), nullable=False)
