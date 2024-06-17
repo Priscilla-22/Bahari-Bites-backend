@@ -17,7 +17,7 @@ class Config:
     TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
     TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
     TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER")
-    MAIL_SERVER = "smtp.example.com"
+    MAIL_SERVER = "smtp.gmail.com"
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
