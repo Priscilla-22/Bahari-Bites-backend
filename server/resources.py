@@ -3,7 +3,7 @@ from flask import jsonify, request
 from twilio.base.exceptions import TwilioRestException
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from flask_socketio import emit
-from server.app import socketio
+from server.app import socketio, db, mail
 from flask_restful import Resource, reqparse
 from .models import (
     db,
@@ -30,7 +30,7 @@ import os
 import logging
 from flask import current_app
 import re
-
+from flask_mail import Message
 
 class HomeResource(Resource):
     def get(self):
@@ -354,6 +354,8 @@ class OrderResource(Resource):
             self.send_order_confirmation_sms(
                 order.id, args["phone_number"], forwarding_number
             )
+            self.send_order_confirmation_email(order.id, user.email)
+
             return {
                 "message": "Order created and payment initiated successfully",
                 "order_id": order.id,
@@ -420,6 +422,27 @@ class OrderResource(Resource):
     def validate_phone_number(self, phone_number):
         return re.match(r"^\+?[1-9]\d{1,14}$", phone_number) is not None
 
+    def send_order_confirmation_email(self, order_id, email):
+        order = Order.query.get(order_id)
+        if not order:
+            return
+
+        order_summary = "\n".join(
+            [f"{item.menu_item.name} (x{item.quantity})" for item in order.order_items]
+        )
+
+        message = f"Order Confirmation\nOrder ID: {order.id}\nEstimated Delivery: 30 mins\nOrder Summary:\n{order_summary}"
+        subject = f"Order Confirmation - Order ID: {order.id}"
+
+        msg = Message(subject, recipients=[email])
+        msg.body = message
+
+        try:
+            mail.send(msg)
+        except Exception as e:
+            current_app.logger.error(f"Failed to send email: {e}")
+            
+            
     def put(self, order_id):
         parser = reqparse.RequestParser()
         parser.add_argument("status", type=str, required=False)

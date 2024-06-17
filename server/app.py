@@ -8,12 +8,14 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
 from flask_jwt_extended import JWTManager
+from flask_mail import Mail
 
 
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 db = SQLAlchemy()
 socketio = SocketIO()
+mail = Mail()
 
 
 def create_app():
@@ -33,4 +35,5 @@ def create_app():
 
     app.register_blueprint(api_bp, url_prefix="/api")
 
+    mail.init_app(app)
     return app
