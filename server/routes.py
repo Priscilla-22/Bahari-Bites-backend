@@ -13,6 +13,7 @@ from .resources import (
     ReservationResource,
     InventoryResource,
     LiveChatResource,
+    BranchResource,
 )
 from .mpesa import simulate_mpesa_callback
 import os
@@ -50,6 +51,7 @@ api.add_resource(
     CartResource, "/cart", "/cart/<int:menu_item_id>"
 ) 
 api.add_resource(LiveChatResource, "/live_chat")
+api.add_resource(BranchResource, "/branches" ,"/branches/<int:branch_id>")
 
 
 # download the SQLite database file.
