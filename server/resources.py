@@ -1,7 +1,7 @@
 # server/resources.py
-from flask import jsonify,request
+from flask import jsonify, request
 from twilio.base.exceptions import TwilioRestException
-from flask_jwt_extended import jwt_required, get_jwt_identity,create_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from flask_socketio import emit
 from server.app import socketio
 from flask_restful import Resource, reqparse
@@ -16,9 +16,9 @@ from .models import (
     Cart,
     CartItem,
     MpesaTransaction,
-    Branch
+    Branch,
 )
-from datetime import datetime,time
+from datetime import datetime, time
 from .mpesa import (
     lipa_na_mpesa_online,
     simulate_mpesa_callback,
@@ -98,7 +98,7 @@ class UserLogin(Resource):
                 "message": "User logged in successfully",
                 "username": user.username,
                 "role": user.role,
-                "access_token": access_token  
+                "access_token": access_token,
             }, 200
         else:
             return {"message": "Invalid username, email, or password"}, 401
@@ -342,12 +342,11 @@ class OrderResource(Resource):
                 mpesa_receipt_number=payment_response.get("MpesaReceiptNumber"),
                 transaction_date=datetime.utcnow(),
                 phone_number=args["phone_number"],
-               order_id=order.id,
+                order_id=order.id,
             )
             db.session.add(mpesa_transaction)
             db.session.commit()
 
-      
             CartItem.query.filter_by(cart_id=user_cart.id).delete()
             db.session.commit()
 
@@ -399,11 +398,7 @@ class OrderResource(Resource):
             return
 
         try:
-            client.messages.create(
-                body=message,
-                from_=from_number,
-                to=phone_number
-            )
+            client.messages.create(body=message, from_=from_number, to=phone_number)
 
             if forwarding_number:
                 forwarding_number = self.normalize_phone_number(forwarding_number)
@@ -411,21 +406,20 @@ class OrderResource(Resource):
                     client.messages.create(
                         body=f"Forwarded Message: {message}",
                         from_=from_number,
-                        to=forwarding_number
+                        to=forwarding_number,
                     )
 
         except TwilioRestException as e:
             current_app.logger.error(f"Twilio Error: {e}")
 
     def normalize_phone_number(self, phone_number):
-        if not phone_number.startswith('+'):
-            phone_number = f'+{phone_number}'
+        if not phone_number.startswith("+"):
+            phone_number = f"+{phone_number}"
         return phone_number
 
     def validate_phone_number(self, phone_number):
-        return re.match(r'^\+?[1-9]\d{1,14}$', phone_number) is not None
-            
-            
+        return re.match(r"^\+?[1-9]\d{1,14}$", phone_number) is not None
+
     def put(self, order_id):
         parser = reqparse.RequestParser()
         parser.add_argument("status", type=str, required=False)
@@ -471,7 +465,15 @@ class OrderResource(Resource):
         order.status = args["status"]
         db.session.commit()
 
-        socketio.emit('order_status_update', {'order_id': order_id, 'old_status': old_status, 'new_status': order.status}, namespace='/order')
+        socketio.emit(
+            "order_status_update",
+            {
+                "order_id": order_id,
+                "old_status": old_status,
+                "new_status": order.status,
+            },
+            namespace="/order",
+        )
 
         return {"message": "Order status updated successfully"}
 
@@ -553,7 +555,6 @@ class ReservationResource(Resource):
             args["reservation_date"], "%Y-%m-%d %H:%M:%S"
         )
 
-       
         reservation_cost = calculate_reservation_cost(reservation_date.time())
 
         reservation = Reservation(
@@ -572,12 +573,12 @@ class ReservationResource(Resource):
 
 
 def calculate_reservation_cost(reservation_time):
-    if reservation_time < time(12, 0):  
-        return 30 
-    elif reservation_time < time(18, 0):  
-        return 50  
+    if reservation_time < time(12, 0):
+        return 30
+    elif reservation_time < time(18, 0):
+        return 50
     else:
-        return 70 
+        return 70
 
 
 class InventoryResource(Resource):
@@ -676,6 +677,8 @@ class BranchResource(Resource):
             "location": branch.location,
             "operating_hours": branch.operating_hours,
             "contact_number": branch.contact_number,
+            "lat": branch.lat,
+            "lng": branch.lng,
         }
 
     def post(self):
@@ -695,6 +698,8 @@ class BranchResource(Resource):
         parser.add_argument(
             "contact_number", type=str, required=True, help="Contact number is required"
         )
+        parser.add_argument("latitude", type=float, required=True, help="Latitude is required")
+        parser.add_argument("longitude", type=float, required=True, help="Longitude is required")
         args = parser.parse_args()
 
         branch = Branch(
@@ -702,6 +707,8 @@ class BranchResource(Resource):
             location=args["location"],
             operating_hours=args["operating_hours"],
             contact_number=args["contact_number"],
+            lat=args["latitude"],
+            lng=args["longitude"]
         )
         db.session.add(branch)
         db.session.commit()
@@ -717,6 +724,8 @@ class BranchResource(Resource):
         parser.add_argument("location", type=str, required=False)
         parser.add_argument("operating_hours", type=str, required=False)
         parser.add_argument("contact_number", type=str, required=False)
+        parser.add_argument("latitude", type=float, required=True, help="Latitude is required")
+        parser.add_argument("longitude", type=float, required=True, help="Longitude is required")
         args = parser.parse_args()
 
         branch = Branch.query.get(branch_id)
@@ -731,6 +740,10 @@ class BranchResource(Resource):
             branch.operating_hours = args["operating_hours"]
         if args["contact_number"]:
             branch.contact_number = args["contact_number"]
+        if args["latitude"]:
+            branch.contact_number = args["latitude"]
+        if args["longitude"]:
+            branch.contact_number = args["longitude"]
 
         db.session.commit()
         return {"message": "Branch updated successfully"}
