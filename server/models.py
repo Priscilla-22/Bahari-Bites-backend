@@ -124,3 +124,5 @@ class Branch(db.Model):
     location = db.Column(db.String(255), nullable=False)
     operating_hours = db.Column(db.String(255), nullable=False)
     contact_number = db.Column(db.String(15), nullable=False)
+    latitude = db.Column(db.Float)  
+    longitude = db.Column(db.Float)  
