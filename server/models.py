@@ -22,7 +22,7 @@ class MenuItem(db.Model):
     inventory = db.relationship(
         "Inventory", backref=db.backref("menu_item", uselist=False)
     )
-    branch_id = db.Column(db.Integer, db.ForeignKey("branch.id"))  # Define branch_id column
+    branch_id = db.Column(db.Integer, db.ForeignKey("branch.id"))
     branch = db.relationship("Branch", backref=db.backref("menu_items", lazy=True))
 
     def __repr__(self):

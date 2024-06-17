@@ -321,7 +321,11 @@ class OrderResource(Resource):
         order.order_items = order_items
         db.session.add(order)
         db.session.commit()
-
+        
+        user = User.query.get(current_user_id)
+        if not user:
+            return {"message": "User not found"}, 404
+        
         payment_response = initiate_mpesa_transaction(
             args["phone_number"],
             total_amount,
