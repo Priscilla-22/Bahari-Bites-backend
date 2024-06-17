@@ -700,8 +700,8 @@ class BranchResource(Resource):
             "location": branch.location,
             "operating_hours": branch.operating_hours,
             "contact_number": branch.contact_number,
-            "lat": branch.lat,
-            "lng": branch.lng,
+            "latitude": branch.latitude,
+            "longitude": branch.longitude,
         }
 
     def post(self):
@@ -730,8 +730,8 @@ class BranchResource(Resource):
             location=args["location"],
             operating_hours=args["operating_hours"],
             contact_number=args["contact_number"],
-            lat=args["latitude"],
-            lng=args["longitude"]
+            latitude=args["latitude"],
+            longitude=args["longitude"]
         )
         db.session.add(branch)
         db.session.commit()
