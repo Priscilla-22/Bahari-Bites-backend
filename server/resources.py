@@ -321,11 +321,11 @@ class OrderResource(Resource):
         order.order_items = order_items
         db.session.add(order)
         db.session.commit()
-        
+
         user = User.query.get(current_user_id)
         if not user:
             return {"message": "User not found"}, 404
-        
+
         payment_response = initiate_mpesa_transaction(
             args["phone_number"],
             total_amount,
@@ -445,8 +445,9 @@ class OrderResource(Resource):
             mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Failed to send email: {e}")
-            
-            
+            current_app.logger.debug(f"MAIL_USERNAME: {os.getenv('MAIL_USERNAME')}")
+            current_app.logger.debug(f"MAIL_PASSWORD: {os.getenv('MAIL_PASSWORD')}")
+
     def put(self, order_id):
         parser = reqparse.RequestParser()
         parser.add_argument("status", type=str, required=False)
