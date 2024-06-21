@@ -18,16 +18,16 @@
 
     <p><strong>Order Summary:</strong></p>
     <ul>
-        <!-- {% for item in order_items %} -->
+        {% for item in order_items %}
         <li>{{ item.name }} (x{{ item.quantity }})</li>
-        <!-- {% endfor %} -->
+        {% endfor %}
     </ul>
     <hr>
 
     <p>If you have any questions or concerns, please do not hesitate to contact us.</p>
 
     <p>Best regards,<br>
-    Bahari Bites ❤️ </p>
+    Bahari Bites</p>
 </body>
 </html>
 
