@@ -621,11 +621,11 @@ class ReservationResource(Resource):
 
 def calculate_reservation_cost(reservation_time):
     if reservation_time < time(12, 0):
-        return 30
+        return 3
     elif reservation_time < time(18, 0):
-        return 50
+        return 2
     else:
-        return 70
+        return 1
 
 
 class InventoryResource(Resource):
