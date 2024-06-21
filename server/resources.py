@@ -432,7 +432,7 @@ class OrderResource(Resource):
         if not order:
             return
 
-        template_loader = FileSystemLoader(searchpath=os.path.join(current_app.root_path, 'server','email_templates'))
+        template_loader = FileSystemLoader(searchpath=os.path.join(current_app.root_path,'email_templates'))
         template_env = Environment(loader=template_loader)
         template = template_env.get_template('order_confirmation_email.html')
 
