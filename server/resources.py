@@ -32,6 +32,8 @@ import logging
 from flask import current_app
 import re
 from flask_mail import Message
+from smtplib import SMTPException
+
 
 class HomeResource(Resource):
     def get(self):
@@ -457,11 +459,12 @@ class OrderResource(Resource):
 
         try:
             mail.send(msg)
-            return  "Email sent successfully"
-        except Exception as e:
+            return "Email sent successfully"
+        except SMTPException as e:
             current_app.logger.error(f"Failed to send email: {e}")
-            current_app.logger.debug(f"MAIL_USERNAME: {os.getenv('MAIL_USERNAME')}")
-            current_app.logger.debug(f"MAIL_PASSWORD: {os.getenv('MAIL_PASSWORD')}")
+            return "Failed to send email"
+        except Exception as e:
+            current_app.logger.error(f"Unexpected error: {e}")
             return "Failed to send email"
         
     def put(self, order_id):
