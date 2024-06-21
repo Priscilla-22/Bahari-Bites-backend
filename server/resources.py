@@ -432,13 +432,13 @@ class OrderResource(Resource):
         if not order:
             return
 
-        template_loader = FileSystemLoader(searchpath=os.path.join(current_app.root_path, 'email_templates'))
+        template_loader = FileSystemLoader(searchpath=os.path.join(current_app.root_path, 'server','email_templates'))
         template_env = Environment(loader=template_loader)
         template = template_env.get_template('order_confirmation_email.html')
 
         user = User.query.filter_by(email=email).first()
         if not user:
-            return
+            return "User not found"
 
         customer_name = user.username
         order_items = [
@@ -457,11 +457,13 @@ class OrderResource(Resource):
 
         try:
             mail.send(msg)
+            return  "Email sent successfully"
         except Exception as e:
             current_app.logger.error(f"Failed to send email: {e}")
             current_app.logger.debug(f"MAIL_USERNAME: {os.getenv('MAIL_USERNAME')}")
             current_app.logger.debug(f"MAIL_PASSWORD: {os.getenv('MAIL_PASSWORD')}")
-
+            return "Failed to send email"
+        
     def put(self, order_id):
         parser = reqparse.RequestParser()
         parser.add_argument("status", type=str, required=False)
