@@ -453,7 +453,7 @@ class OrderResource(Resource):
         subject = f"Order Confirmation - Order ID: {order.id}"
 
         msg = Message(subject, recipients=[email])
-        msg.body = message_body
+        msg.html= message_body
 
         try:
             mail.send(msg)
