@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang='eng'>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Order Confirmation</title>
+</head>
+<body>
+    <p>Hi {{ customer_name }},</p>
+
+    <p>Thank you for your order! We are thrilled to have the opportunity to serve you.</p>
+
+    <p>Here are the details of your order:</p>
+    <hr>
+    <p><strong>Order ID:</strong> {{ order_id }}<br>
+    <strong>Estimated Delivery:</strong> 30 mins</p>
+
+    <p><strong>Order Summary:</strong></p>
+    <ul>
+        {% for item in order_items %}
+        <li>{{ item.name }} (x{{ item.quantity }})</li>
+        {% endfor %}
+    </ul>
+    <hr>
+
+    <p>If you have any questions or concerns, please do not hesitate to contact us.</p>
+
+    <p>Best regards,<br>
+    Bahari Bites ❤️ </p>
+</body>
+</html>
+

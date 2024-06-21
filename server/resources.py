@@ -5,6 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_tok
 from flask_socketio import emit
 from server.app import socketio, db, mail
 from flask_restful import Resource, reqparse
+from jinja2 import Environment, FileSystemLoader
 from .models import (
     db,
     User,
@@ -431,15 +432,28 @@ class OrderResource(Resource):
         if not order:
             return
 
-        order_summary = "\n".join(
-            [f"{item.menu_item.name} (x{item.quantity})" for item in order.order_items]
+        template_loader = FileSystemLoader(searchpath=os.path.join(current_app.root_path, 'email_templates'))
+        template_env = Environment(loader=template_loader)
+        template = template_env.get_template('order_confirmation_email.html')
+
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return
+
+        customer_name = user.username
+        order_items = [
+            {"name": item.menu_item.name, "quantity": item.quantity}
+            for item in order.order_items
+        ]
+
+        message_body = template.render(
+            customer_name=customer_name, order_id=order.id, order_items=order_items
         )
 
-        message = f"Order Confirmation\nOrder ID: {order.id}\nEstimated Delivery: 30 mins\nOrder Summary:\n{order_summary}"
         subject = f"Order Confirmation - Order ID: {order.id}"
 
         msg = Message(subject, recipients=[email])
-        msg.body = message
+        msg.body = message_body
 
         try:
             mail.send(msg)
