@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reservation Confirmation</title>
+</head>
+
+<body>
+    <h1>Reservation Confirmation</h1>
+    <p>Dear {{ customer_name }},</p>
+    <p>Thank you for your reservation. Here are your reservation details:</p>
+    <ul>
+        <li><strong>Reservation ID:</strong> {{ reservation_id }}</li>
+        <li><strong>Date:</strong> {{ reservation_date }}</li>
+        <li><strong>Guests:</strong> {{ table_number }}</li>
+    </ul>
+    <p>We look forward to serving you!</p>
+    <p>Sincerely,</p>
+    <p>Bahari Bites</p>
