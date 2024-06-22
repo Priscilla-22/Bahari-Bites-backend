@@ -592,6 +592,7 @@ def calculate_reservation_cost(reservation_time):
 
 
 class ReservationResource(Resource):
+    @jwt_required()
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument(
