@@ -101,7 +101,7 @@ class MpesaTransaction(db.Model):
     mpesa_receipt_number = db.Column(db.String(50))
     transaction_date = db.Column(db.DateTime)
     phone_number = db.Column(db.String(15), nullable=False)
-    order_id = db.Column(db.Integer, db.ForeignKey("order.id"), nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey("order.id"), nullable=True)
     order = db.relationship(
         "Order", backref=db.backref("mpesa_transactions", lazy=True)
     )
