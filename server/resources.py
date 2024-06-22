@@ -571,6 +571,26 @@ class OrderItemResource(Resource):
         return {"message": "Order item deleted successfully"}
 
 
+def calculate_reservation_cost(reservation_time):
+    """
+    Calculate the cost of a reservation based on the time of the reservation.
+    Example pricing logic:
+    - Reservations from 00:00 to 12:00 cost Ksh.3
+    - Reservations from 12:00 to 18:00 cost Ksh.2
+    - Reservations from 18:00 to 23:59 cost Ksh.1
+    """
+    morning_rate = 3
+    afternoon_rate = 2
+    evening_rate = 1
+
+    if reservation_time.hour < 12:
+        return morning_rate
+    elif reservation_time.hour < 18:
+        return afternoon_rate
+    else:
+        return evening_rate
+
+
 class ReservationResource(Resource):
     def post(self):
         parser = reqparse.RequestParser()
@@ -592,6 +612,19 @@ class ReservationResource(Resource):
             required=True,
             help="Table number is required for reservation",
         )
+        parser.add_argument(
+            "phone_number",
+            type=str,
+            required=True,
+            help="Phone number is required for payment",
+        )
+        parser.add_argument(
+            "simulate",
+            type=bool,
+            required=False,
+            default=False,
+            help="Set to true to simulate M-Pesa transaction",
+        )
         args = parser.parse_args()
 
         user = User.query.get(args["user_id_reservation"])
@@ -608,24 +641,150 @@ class ReservationResource(Resource):
             user_id_reservation=args["user_id_reservation"],
             reservation_date=reservation_date,
             table_number=args["table_number"],
+            status="Pending",
         )
         db.session.add(reservation)
         db.session.commit()
 
-        return {
-            "message": "Reservation created successfully",
-            "reservation_id": reservation.id,
-            "reservation_cost": reservation_cost,
-        }, 201
+        payment_response = initiate_mpesa_transaction(
+            args["phone_number"],
+            Decimal(reservation_cost),
+            reservation.id,
+            simulate=args["simulate"],
+        )
 
+        if args["simulate"]:
+            simulate_mpesa_callback(payment_response)
 
-def calculate_reservation_cost(reservation_time):
-    if reservation_time < time(12, 0):
-        return 3
-    elif reservation_time < time(18, 0):
-        return 2
-    else:
-        return 1
+        if payment_response.get("ResponseCode") == "0":
+            mpesa_transaction = MpesaTransaction(
+                merchant_request_id=payment_response["MerchantRequestID"],
+                checkout_request_id=payment_response["CheckoutRequestID"],
+                result_code=payment_response["ResponseCode"],
+                result_description=payment_response["ResponseDescription"],
+                amount=Decimal(reservation_cost),
+                mpesa_receipt_number=payment_response.get("MpesaReceiptNumber"),
+                transaction_date=datetime.utcnow(),
+                phone_number=args["phone_number"],
+                reservation_id=reservation.id,
+            )
+            db.session.add(mpesa_transaction)
+            db.session.commit()
+
+            reservation.status = "Confirmed"
+            db.session.commit()
+
+            forwarding_number = self.get_forwarding_number(reservation.id)
+            self.send_reservation_confirmation_sms(
+                reservation.id, args["phone_number"], forwarding_number
+            )
+            self.send_reservation_confirmation_email(reservation.id, user.email)
+
+            return {
+                "message": "Reservation created and payment initiated successfully",
+                "reservation_id": reservation.id,
+                "reservation_cost": reservation_cost,
+            }, 201
+        else:
+            return {
+                "message": "Reservation created but payment failed",
+                "reservation_id": reservation.id,
+                "payment_error": payment_response,
+            }, 400
+
+    def get_forwarding_number(self, reservation_id):
+        mpesa_transaction = MpesaTransaction.query.filter_by(
+            reservation_id=reservation_id
+        ).first()
+        if mpesa_transaction:
+            return mpesa_transaction.phone_number
+        return None
+
+    def send_reservation_confirmation_sms(
+        self, reservation_id, phone_number, forwarding_number
+    ):
+        reservation = Reservation.query.get(reservation_id)
+        if not reservation:
+            return
+
+        message = f"Reservation Confirmation\nReservation ID: {reservation.id}\nDate: {reservation.reservation_date}\nTable Number: {reservation.table_number}"
+        current_app.logger.info(f"Sending SMS to: {phone_number}")
+
+        self.send_sms(phone_number, message, forwarding_number)
+
+    def send_sms(self, phone_number, message, forwarding_number):
+        account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+        auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+        from_number = os.getenv("TWILIO_PHONE_NUMBER")
+
+        client = Client(account_sid, auth_token)
+
+        phone_number = self.normalize_phone_number(phone_number)
+        if not phone_number or not self.validate_phone_number(phone_number):
+            current_app.logger.error(f"Invalid phone number format: {phone_number}")
+            return
+
+        try:
+            client.messages.create(body=message, from_=from_number, to=phone_number)
+
+            if forwarding_number:
+                forwarding_number = self.normalize_phone_number(forwarding_number)
+                if self.validate_phone_number(forwarding_number):
+                    client.messages.create(
+                        body=f"Forwarded Message: {message}",
+                        from_=from_number,
+                        to=forwarding_number,
+                    )
+
+        except TwilioRestException as e:
+            current_app.logger.error(f"Twilio Error: {e}")
+
+    def normalize_phone_number(self, phone_number):
+        if not phone_number.startswith("+"):
+            phone_number = f"+{phone_number}"
+        return phone_number
+
+    def validate_phone_number(self, phone_number):
+        return re.match(r"^\+?[1-9]\d{1,14}$", phone_number) is not None
+
+    def send_reservation_confirmation_email(self, reservation_id, email):
+        reservation = Reservation.query.get(reservation_id)
+        if not reservation:
+            return
+
+        template_loader = FileSystemLoader(
+            searchpath=os.path.join(current_app.root_path, "email_templates")
+        )
+        template_env = Environment(loader=template_loader)
+        template = template_env.get_template("reservation_confirmation_email.html")
+
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            return "User not found"
+
+        customer_name = user.username
+
+        message_body = template.render(
+            customer_name=customer_name,
+            reservation_id=reservation.id,
+            reservation_date=reservation.reservation_date,
+            table_number=reservation.table_number,
+        )
+
+        subject = f"Reservation Confirmation - Reservation ID: {reservation.id}"
+
+        msg = Message(subject, recipients=[email])
+        msg.html = message_body
+
+        try:
+            mail.send(msg)
+            return "Email sent successfully"
+        except SMTPException as e:
+            current_app.logger.error(f"Failed to send email: {e}")
+            return "Failed to send email"
+        except Exception as e:
+            current_app.logger.error(f"Unexpected error: {e}")
+            return "Failed to send email"
 
 
 class InventoryResource(Resource):
