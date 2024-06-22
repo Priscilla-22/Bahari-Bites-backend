@@ -571,36 +571,10 @@ class OrderItemResource(Resource):
         return {"message": "Order item deleted successfully"}
 
 
-def calculate_reservation_cost(reservation_time):
-    """
-    Calculate the cost of a reservation based on the time of the reservation.
-    Example pricing logic:
-    - Reservations from 00:00 to 12:00 cost Ksh.3
-    - Reservations from 12:00 to 18:00 cost Ksh.2
-    - Reservations from 18:00 to 23:59 cost Ksh.1
-    """
-    morning_rate = 3
-    afternoon_rate = 2
-    evening_rate = 1
-
-    if reservation_time.hour < 12:
-        return morning_rate
-    elif reservation_time.hour < 18:
-        return afternoon_rate
-    else:
-        return evening_rate
-
-
 class ReservationResource(Resource):
     @jwt_required()
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument(
-            "user_id_reservation",
-            type=int,
-            required=True,
-            help="User ID is required for reservation",
-        )
         parser.add_argument(
             "reservation_date",
             type=str,
@@ -628,18 +602,22 @@ class ReservationResource(Resource):
         )
         args = parser.parse_args()
 
-        user = User.query.get(args["user_id_reservation"])
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
         if not user:
             return {"message": "User not found"}, 404
 
-        reservation_date = datetime.strptime(
-            args["reservation_date"], "%Y-%m-%d %H:%M:%S"
-        )
+        try:
+            reservation_date = datetime.strptime(
+                args["reservation_date"], "%Y-%m-%d %H:%M:%S"
+            )
+        except ValueError:
+            return {"message": "Invalid date format"}, 400
 
         reservation_cost = calculate_reservation_cost(reservation_date.time())
 
         reservation = Reservation(
-            user_id_reservation=args["user_id_reservation"],
+            user_id_reservation=current_user_id,
             reservation_date=reservation_date,
             table_number=args["table_number"],
             status="Pending",
@@ -768,7 +746,7 @@ class ReservationResource(Resource):
         message_body = template.render(
             customer_name=customer_name,
             reservation_id=reservation.id,
-            reservation_date=reservation.reservation_date,
+            reservation_date=reservation.reservation_date.strftime("%Y-%m-%d %H:%M:%S"),
             table_number=reservation.table_number,
         )
 
@@ -786,6 +764,26 @@ class ReservationResource(Resource):
         except Exception as e:
             current_app.logger.error(f"Unexpected error: {e}")
             return "Failed to send email"
+
+
+def calculate_reservation_cost(reservation_time):
+    """
+    Calculate the cost of a reservation based on the time of the reservation.
+    Example pricing logic:
+    - Reservations from 00:00 to 12:00 cost Ksh.3
+    - Reservations from 12:00 to 18:00 cost Ksh.2
+    - Reservations from 18:00 to 23:59 cost Ksh.1
+    """
+    morning_rate = 3
+    afternoon_rate = 2
+    evening_rate = 1
+
+    if reservation_time.hour < 12:
+        return morning_rate
+    elif reservation_time.hour < 18:
+        return afternoon_rate
+    else:
+        return evening_rate
 
 
 class InventoryResource(Resource):
