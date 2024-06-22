@@ -105,6 +105,10 @@ class MpesaTransaction(db.Model):
     order = db.relationship(
         "Order", backref=db.backref("mpesa_transactions", lazy=True)
     )
+    reservation_id = db.Column(db.Integer, db.ForeignKey("reservation.id"), nullable=True)
+    reservation = db.relationship(
+        "Reservation", backref=db.backref("mpesa_transactions", lazy=True)
+    )
 
     def __repr__(self):
         return f"<MpesaTransaction {self.id}>"
