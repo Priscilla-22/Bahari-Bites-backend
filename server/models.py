@@ -77,7 +77,10 @@ class Reservation(db.Model):
     )
     reservation_date = db.Column(db.DateTime, nullable=False)
     table_number = db.Column(db.Integer, nullable=False)
-
+    status = db.Column(db.String(20), default='Pending')
+    phone_number = db.Column(db.String(20), nullable=False)
+    reservation_time = db.Column(db.Time, nullable=False)
+    
     def __repr__(self):
         return f"<Reservation {self.id}>"
 
