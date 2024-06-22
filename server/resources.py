@@ -572,6 +572,7 @@ class OrderItemResource(Resource):
 
 
 class ReservationResource(Resource):
+
     @jwt_required()
     def post(self):
         parser = reqparse.RequestParser()
@@ -580,12 +581,6 @@ class ReservationResource(Resource):
             type=str,
             required=True,
             help="Reservation date is required (format: YYYY-MM-DD HH:MM:SS)",
-        )
-        parser.add_argument(
-            "reservation_time",
-            type=str,
-            required=True,
-            help="Reservation time is required (format: HH:MM:SS)",
         )
         parser.add_argument(
             "table_number",
@@ -618,14 +613,11 @@ class ReservationResource(Resource):
                 args["reservation_date"], "%Y-%m-%d %H:%M:%S"
             )
         except ValueError:
-            return {"message": "Invalid date format"}, 400
+            return {
+                "message": "Invalid date format. Use format: YYYY-MM-DD HH:MM:SS"
+            }, 400
 
-        try:
-            reservation_time = datetime.strptime(
-                args["reservation_time"], "%H:%M:%S"
-            ).time()
-        except ValueError:
-            return {"message": "Invalid time format"}, 400
+        reservation_time = reservation_date.time()
 
         reservation_cost = calculate_reservation_cost(reservation_time)
 
