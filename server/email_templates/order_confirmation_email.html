@@ -55,9 +55,9 @@
             <p>Your order (ID: {{ order_id }}) has been successfully placed and is being processed.</p>
             <h3>Order Summary:</h3>
             <ul>
-                {% for item in order_items %}
-                <li>{{ item['name'] }} (Quantity: {{ item['quantity'] }})</li>
-                {% endfor %}
+                <li>
+                    {{ order_items }}
+                </li>
             </ul>
             <p>You will receive another email once your order has been shipped.</p>
         </div>

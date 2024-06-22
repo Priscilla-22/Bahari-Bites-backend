@@ -434,13 +434,13 @@ class OrderResource(Resource):
             return "User not found"
 
         customer_name = user.username
-        order_items = [
-            {"name": item.menu_item.name, "quantity": item.quantity}
+        order_items_html = "\n".join(
+            f"<li>{item.menu_item.name} (Quantity: {item.quantity})</li>"
             for item in order.order_items
-        ]
+        )
 
         message_body = template.render(
-            customer_name=customer_name, order_id=order.id, order_items=order_items
+            customer_name=customer_name, order_id=order.id, order_items=order_items_html
         )
 
         subject = f"Order Confirmation - Order ID: {order.id}"
