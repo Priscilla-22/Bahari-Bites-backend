@@ -4,6 +4,7 @@ from twilio.base.exceptions import TwilioRestException
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from flask_socketio import emit
 from server.app import socketio, db, mail
+from .utils import create_mpesa_transaction
 from flask_restful import Resource, reqparse
 from jinja2 import Environment, FileSystemLoader
 from .models import (
@@ -340,19 +341,9 @@ class OrderResource(Resource):
             simulate_mpesa_callback(payment_response)
 
         if payment_response.get("ResponseCode") == "0":
-            mpesa_transaction = MpesaTransaction(
-                merchant_request_id=payment_response["MerchantRequestID"],
-                checkout_request_id=payment_response["CheckoutRequestID"],
-                result_code=payment_response["ResponseCode"],
-                result_description=payment_response["ResponseDescription"],
-                amount=total_amount,
-                mpesa_receipt_number=payment_response.get("MpesaReceiptNumber"),
-                transaction_date=datetime.utcnow(),
-                phone_number=args["phone_number"],
-                order_id=order.id,
+            create_mpesa_transaction(
+                payment_response, total_amount, args["phone_number"], order_id=order.id
             )
-            db.session.add(mpesa_transaction)
-            db.session.commit()
 
             CartItem.query.filter_by(cart_id=user_cart.id).delete()
             db.session.commit()
@@ -466,7 +457,7 @@ class OrderResource(Resource):
         except Exception as e:
             current_app.logger.error(f"Unexpected error: {e}")
             return "Failed to send email"
-        
+
     def put(self, order_id):
         parser = reqparse.RequestParser()
         parser.add_argument("status", type=str, required=False)
@@ -641,22 +632,14 @@ class ReservationResource(Resource):
 
         if args["simulate"]:
             simulate_mpesa_callback(payment_response)
-
+            
         if payment_response.get("ResponseCode") == "0":
-            mpesa_transaction = MpesaTransaction(
-                merchant_request_id=payment_response["MerchantRequestID"],
-                checkout_request_id=payment_response["CheckoutRequestID"],
-                result_code=payment_response["ResponseCode"],
-                result_description=payment_response["ResponseDescription"],
-                amount=Decimal(reservation_cost),
-                mpesa_receipt_number=payment_response.get("MpesaReceiptNumber"),
-                transaction_date=datetime.utcnow(),
-                phone_number=args["phone_number"],
-                reservation_id=reservation.id,
+            create_mpesa_transaction(
+                payment_response,
+                Decimal(reservation_cost),
+                args["phone_number"],
+                reservation_id=reservation.id
             )
-            db.session.add(mpesa_transaction)
-            db.session.commit()
-
             reservation.status = "Confirmed"
             db.session.commit()
 
