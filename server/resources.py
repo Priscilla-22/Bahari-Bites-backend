@@ -640,7 +640,7 @@ class ReservationResource(Resource):
         )
 
         if args["simulate"]:
-            simulate_mpesa_callback(payment_response)
+            simulate_mpesa_callback()
 
         if payment_response.get("ResponseCode") == "0":
             mpesa_transaction = MpesaTransaction(
