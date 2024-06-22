@@ -582,6 +582,12 @@ class ReservationResource(Resource):
             help="Reservation date is required (format: YYYY-MM-DD HH:MM:SS)",
         )
         parser.add_argument(
+            "reservation_time",
+            type=str,
+            required=True,
+            help="Reservation time is required (format: HH:MM:SS)",
+        )
+        parser.add_argument(
             "table_number",
             type=int,
             required=True,
@@ -591,7 +597,7 @@ class ReservationResource(Resource):
             "phone_number",
             type=str,
             required=True,
-            help="Phone number is required for payment",
+            help="Phone number is required for reservation",
         )
         parser.add_argument(
             "simulate",
@@ -614,12 +620,21 @@ class ReservationResource(Resource):
         except ValueError:
             return {"message": "Invalid date format"}, 400
 
-        reservation_cost = calculate_reservation_cost(reservation_date.time())
+        try:
+            reservation_time = datetime.strptime(
+                args["reservation_time"], "%H:%M:%S"
+            ).time()
+        except ValueError:
+            return {"message": "Invalid time format"}, 400
+
+        reservation_cost = calculate_reservation_cost(reservation_time)
 
         reservation = Reservation(
             user_id_reservation=current_user_id,
             reservation_date=reservation_date,
+            reservation_time=reservation_time,
             table_number=args["table_number"],
+            phone_number=args["phone_number"],
             status="Pending",
         )
         db.session.add(reservation)
