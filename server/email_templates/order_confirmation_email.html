@@ -1,31 +1,70 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #007bff;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #777;
+        }
+    </style>
 </head>
+
 <body>
-    <p>Hi {{ customer_name }},</p>
-
-    <p>Thank you for your order! We are thrilled to have the opportunity to serve you.</p>
-
-    <p>Here are the details of your order:</p>
-    <hr>
-    <p><strong>Order ID:</strong> {{ order_id }}<br>
-    <strong>Estimated Delivery:</strong> 30 mins</p>
-
-    <p><strong>Order Summary:</strong></p>
-    <ul>
-        <li>{{ item.name }} (x{{ item.quantity }})</li>
-    </ul>
-    <hr>
-
-    <p>If you have any questions or concerns, please do not hesitate to contact us.</p>
-
-    <p>Best regards,<br>
-    Bahari Bites</p>
+    <div class="email-container">
+        <div class="header">
+            <h2>Order Confirmation</h2>
+        </div>
+        <div class="content">
+            <p>Dear {{ customer_name }},</p>
+            <p>Thank you for your order!</p>
+            <p>Your order (ID: {{ order_id }}) has been successfully placed and is being processed.</p>
+            <h3>Order Summary:</h3>
+            <ul>
+                {% for item in order_items %}
+                <li>{{ item['name'] }} (Quantity: {{ item['quantity'] }})</li>
+                {% endfor %}
+            </ul>
+            <p>You will receive another email once your order has been shipped.</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message. Please do not reply.</p>
+        </div>
+    </div>
 </body>
-</html>
 
+</html>
