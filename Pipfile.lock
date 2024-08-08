@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "dfe675dfae30810d4981ab21b42a5de50cce88822f5b6380964db75f9c6e20b8"
+            "sha256": "c8085c268119006d204ff85b49690a201dc49b9b07fc14db86eda7ef4ec787dc"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -55,6 +55,15 @@
             "index": "pypi",
             "markers": "python_version >= '3.8'",
             "version": "==26.2.0"
+        },
+        "faker-food": {
+            "hashes": [
+                "sha256:2e5faed4d375dca53bd5ef4cdf362884197bb2fa6ae8ae4f6949f5143686b9d0",
+                "sha256:eeec5f2cd64708b7cbb620a1851cb0cff77012a3f582535ddc8fd8ab535265e7"
+            ],
+            "index": "pypi",
+            "markers": "python_version >= '3.8'",
+            "version": "==0.3.0"
         },
         "flask": {
             "hashes": [
