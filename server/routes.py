@@ -14,6 +14,7 @@ from .resources import (
     InventoryResource,
     LiveChatResource,
     BranchResource,
+    Menu
 )
 from .mpesa import simulate_mpesa_callback
 import os
@@ -25,6 +26,8 @@ api = Api(api_bp)
 api.add_resource(HomeResource, "/")
 api.add_resource(UserRegistration, "/register")
 api.add_resource(UserLogin, "/login")
+api.add_resource(Menu, "/menu")
+
 api.add_resource(
     OrderResource, "/orders", "/orders/<int:order_id>", "/orders/<int:order_id>/status"
 )
