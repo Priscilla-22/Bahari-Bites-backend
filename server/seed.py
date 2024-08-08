@@ -8,9 +8,12 @@ from server.models import db, MenuItem
 from server.app import (
     create_app,
 )
+
 from faker import Faker
+from faker_food import FoodProvider
 
 fake = Faker()
+fake.add_provider(FoodProvider)
 app = create_app()
 
 img = "https://images.pexels.com/photos/725991/pexels-photo-725991.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
@@ -19,8 +22,8 @@ with app.app_context():
     
     for x in range(10):
         menu_item = MenuItem(
-            name=fake.word(),
-            description=fake.text(max_nb_chars=255),
+            name=fake.dish(),
+            description=fake.dish_description(),
             rating=fake.random_int(min=1, max=5),
             price=fake.random_int(min=50, max=200),
             image_url=img,
