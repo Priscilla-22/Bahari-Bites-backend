@@ -106,6 +106,21 @@ class UserLogin(Resource):
             }, 200
         else:
             return {"message": "Invalid username, email, or password"}, 401
+        
+class Menu(Resource):
+    def get(self):
+        menu = MenuItem.query.all()
+        menu_list = []
+        for item in menu:
+            menu_list.append({
+                'id': item.id,
+                'name': item.name,
+                'description': item.description,
+                'rating': item.rating,
+                'price': item.price,
+                'image_url': item.image_url,
+            })
+        return jsonify(menu_list)
 
 
 class MenuItemResource(Resource):
