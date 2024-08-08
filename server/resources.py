@@ -116,6 +116,7 @@ class Menu(Resource):
                 'id': item.id,
                 'name': item.name,
                 'description': item.description,
+                'category': item.category,
                 'rating': item.rating,
                 'price': item.price,
                 'image_url': item.image_url,
@@ -132,6 +133,8 @@ class MenuItemResource(Resource):
             "id": menu_item.id,
             "name": menu_item.name,
             "description": menu_item.description,
+            "category": menu_item.category,
+            "rating": menu_item.rating,
             "price": str(menu_item.price),
             "image_url": menu_item.image_url,
         }
