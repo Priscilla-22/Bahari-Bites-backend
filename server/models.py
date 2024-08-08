@@ -18,13 +18,13 @@ class MenuItem(db.Model):
     description = db.Column(db.String(255))
     rating = db.Column(db.Integer, default=None)
     price = db.Column(db.Numeric(10, 2), nullable=False)
-    image_url = db.Column(db.String(255))
-    inventory_id = db.Column(db.Integer, db.ForeignKey("inventory.id"))
-    inventory = db.relationship(
-        "Inventory", backref=db.backref("menu_item", uselist=False)
-    )
-    branch_id = db.Column(db.Integer, db.ForeignKey("branch.id"))
-    branch = db.relationship("Branch", backref=db.backref("menu_items", lazy=True))
+    image_url = db.Column(db.String(600))
+    # inventory_id = db.Column(db.Integer, db.ForeignKey("inventory.id"))
+    # inventory = db.relationship(
+    #     "Inventory", backref=db.backref("menu_item", uselist=False)
+    # )
+    # branch_id = db.Column(db.Integer, db.ForeignKey("branch.id"))
+    # branch = db.relationship("Branch", backref=db.backref("menu_items", lazy=True))
 
     def __repr__(self):
         return f"<MenuItem {self.id} - {self.name}>"
