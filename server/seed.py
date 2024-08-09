@@ -74,7 +74,7 @@ category_images = {
 
 with app.app_context():
     
-    for x in range(10):
+    for x in range(100):
         category = random.choice(categories)
         image = random.choice(category_images[category])
         
@@ -89,3 +89,4 @@ with app.app_context():
         db.session.add(menu_item)
         db.session.commit()
         print("Added menu item to database")
+    print('\033[92m'"Completed database population")

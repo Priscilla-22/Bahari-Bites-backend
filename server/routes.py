@@ -44,7 +44,7 @@ api.add_resource(
     "/orders/<int:order_id>/items",
     "/orders/<int:order_id>/items/<int:order_item_id>",
 )
-api.add_resource(MenuItemResource, "/menu_items", "/menu_items/<int:menu_item_id>")
+api.add_resource(MenuItemResource, "/menu/<int:menu_item_id>")
 api.add_resource(
     ReservationResource,
     "/reservations",
