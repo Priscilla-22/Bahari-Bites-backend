@@ -8,7 +8,8 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(50), nullable=False)
+    phone_number = db.Column( db.String(15))
+    role = db.Column(db.String(50), default='customer')
     cart = db.relationship('Cart', backref='user', uselist=False)
 
 
@@ -48,15 +49,10 @@ class CartItem(db.Model):
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id_order = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    order_date = db.Column(
-        db.DateTime, nullable=False, default=db.func.current_timestamp()
-    )
+    order_date = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
     status = db.Column(db.String(50), nullable=False)
     user = db.relationship("User", backref=db.backref("orders", lazy=True))
-    order_items = db.relationship("OrderItem", backref="order", lazy=True)
-    phone_number = db.Column(
-        db.String(15), nullable=False
-    )  
+    order_items = db.relationship("OrderItem", backref="order", lazy=True)  
 
     def __repr__(self):
         return f"<Order {self.id}>"
