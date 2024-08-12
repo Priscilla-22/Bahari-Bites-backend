@@ -5,7 +5,7 @@ import random
 # Add the project directory to the Python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from server.models import db, MenuItem
+from server.models import db, MenuItem, User
 from server.app import (
     create_app,
 )
@@ -73,6 +73,46 @@ category_images = {
 
 
 with app.app_context():
+    
+    User.query.delete()
+    print('Deleted Users')
+    MenuItem.query.delete()
+    print('Deleted Menu Items')
+    
+    admin = User(
+        firstname="John",
+        lastname="Kimani",
+        email="johndoe@example.com",
+        password="password123",
+        role="admin",
+        phone_number=254793453219
+    )
+    
+    staff = User(
+        firstname="Chief",
+        lastname="Chef",
+        email="chef@example.com",
+        password="password123",
+        role="staff",
+        phone_number=254793453220
+    )
+    customer = User(
+        firstname="Boina",
+        lastname="Yule Mmoja",
+        email="boina@example.com",
+        password="password123",
+        role="customer",
+        phone_number=254793453221
+    )
+    db.session.add(admin)
+    db.session.commit()
+    print("Added admin user to database")
+    db.session.add(customer)
+    db.session.commit()
+    print("Added user user to database")
+    db.session.add(staff)
+    db.session.commit()
+    print("Added staff user to database")
     
     for x in range(100):
         category = random.choice(categories)

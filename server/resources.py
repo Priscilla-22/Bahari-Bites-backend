@@ -45,7 +45,10 @@ class UserRegistration(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument(
-            "username", type=str, required=True, help="Username is required"
+            "firstname", type=str, required=True, help="First name is required"
+        )
+        parser.add_argument(
+            "lastname", type=str, required=True, help="Last Name is required"
         )
         parser.add_argument("email", type=str, required=True, help="Email is required")
         parser.add_argument(
@@ -59,18 +62,16 @@ class UserRegistration(Resource):
         )
         args = parser.parse_args()
 
-        username = args["username"]
+        firstname = args["firstname"]
+        lastname = args["lastname"]
         email = args["email"]
         password = args["password"]
         role = args["role"]
 
-        if User.query.filter_by(username=username).first():
-            return {"message": "Username already exists"}, 400
-
         if User.query.filter_by(email=email).first():
             return {"message": "Email already exists"}, 400
 
-        user = User(username=username, email=email, password=password, role=role)
+        user = User(firstname=firstname, lastname=lastname, email=email, password=password, role=role)
         db.session.add(user)
         db.session.commit()
 
