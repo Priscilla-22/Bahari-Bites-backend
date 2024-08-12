@@ -1,4 +1,8 @@
 # run.py
+import sys
+
+sys.path.append('.')
+
 from server.app import create_app
 
 if __name__ == "__main__":

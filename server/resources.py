@@ -45,7 +45,10 @@ class UserRegistration(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument(
-            "username", type=str, required=True, help="Username is required"
+            "firstname", type=str, required=True, help="First name is required"
+        )
+        parser.add_argument(
+            "lastname", type=str, required=True, help="Last Name is required"
         )
         parser.add_argument("email", type=str, required=True, help="Email is required")
         parser.add_argument(
@@ -59,18 +62,16 @@ class UserRegistration(Resource):
         )
         args = parser.parse_args()
 
-        username = args["username"]
+        firstname = args["firstname"]
+        lastname = args["lastname"]
         email = args["email"]
         password = args["password"]
         role = args["role"]
 
-        if User.query.filter_by(username=username).first():
-            return {"message": "Username already exists"}, 400
-
         if User.query.filter_by(email=email).first():
             return {"message": "Email already exists"}, 400
 
-        user = User(username=username, email=email, password=password, role=role)
+        user = User(firstname=firstname, lastname=lastname, email=email, password=password, role=role)
         db.session.add(user)
         db.session.commit()
 
@@ -81,7 +82,7 @@ class UserLogin(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument(
-            "credential", type=str, required=True, help="Username or email is required"
+            "credential", type=str, required=True, help="Phone number or email is required"
         )
         parser.add_argument(
             "password", type=str, required=True, help="Password is required"
@@ -92,7 +93,7 @@ class UserLogin(Resource):
         password = args["password"]
 
         user = User.query.filter(
-            (User.username == credential) | (User.email == credential)
+            (User.phone_number == credential) | (User.email == credential)
         ).first()
 
         if user and user.password == password:
@@ -100,12 +101,31 @@ class UserLogin(Resource):
             access_token = create_access_token(identity=user.id)
             return {
                 "message": "User logged in successfully",
-                "username": user.username,
+                "firstname": user.firstname,
+                "lastname": user.lastname,
+                "email": user.email,
+                "phone_number": user.phone_number,
                 "role": user.role,
                 "access_token": access_token,
             }, 200
         else:
             return {"message": "Invalid username, email, or password"}, 401
+        
+class Menu(Resource):
+    def get(self):
+        menu = MenuItem.query.all()
+        menu_list = []
+        for item in menu:
+            menu_list.append({
+                'id': item.id,
+                'name': item.name,
+                'description': item.description,
+                'category': item.category,
+                'rating': item.rating,
+                'price': item.price,
+                'image_url': item.image_url,
+            })
+        return jsonify(menu_list)
 
 
 class MenuItemResource(Resource):
@@ -117,6 +137,8 @@ class MenuItemResource(Resource):
             "id": menu_item.id,
             "name": menu_item.name,
             "description": menu_item.description,
+            "category": menu_item.category,
+            "rating": menu_item.rating,
             "price": str(menu_item.price),
             "image_url": menu_item.image_url,
         }

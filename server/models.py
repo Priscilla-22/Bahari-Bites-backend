@@ -5,10 +5,12 @@ from sqlalchemy.orm import relationship
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
+    firstname = db.Column(db.String(50), nullable=False)
+    lastname = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(50), nullable=False)
+    phone_number = db.Column( db.String(15), unique=True)
+    role = db.Column(db.String(50), default='customer')
     cart = db.relationship('Cart', backref='user', uselist=False)
 
 
@@ -16,8 +18,10 @@ class MenuItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(255))
+    category = db.Column(db.String(70), nullable=False)
+    rating = db.Column(db.Integer, default=None)
     price = db.Column(db.Numeric(10, 2), nullable=False)
-    image_url = db.Column(db.String(255))
+    image_url = db.Column(db.String(600))
     inventory_id = db.Column(db.Integer, db.ForeignKey("inventory.id"))
     inventory = db.relationship(
         "Inventory", backref=db.backref("menu_item", uselist=False)
@@ -46,15 +50,10 @@ class CartItem(db.Model):
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id_order = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    order_date = db.Column(
-        db.DateTime, nullable=False, default=db.func.current_timestamp()
-    )
+    order_date = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
     status = db.Column(db.String(50), nullable=False)
     user = db.relationship("User", backref=db.backref("orders", lazy=True))
-    order_items = db.relationship("OrderItem", backref="order", lazy=True)
-    phone_number = db.Column(
-        db.String(15), nullable=False
-    )  
+    order_items = db.relationship("OrderItem", backref="order", lazy=True)  
 
     def __repr__(self):
         return f"<Order {self.id}>"

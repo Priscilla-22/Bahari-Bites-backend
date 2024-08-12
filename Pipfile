@@ -7,8 +7,10 @@ name = "pypi"
 flask-restful = "*"
 flask-sqlalchemy = "*"
 faker = "*"
+flask-socketio = "*"
+faker-food = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.10"
+python_version = "*"
