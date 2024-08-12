@@ -52,6 +52,7 @@ class Order(db.Model):
     user_id_order = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     order_date = db.Column(db.DateTime, nullable=False, default=db.func.current_timestamp())
     status = db.Column(db.String(50), nullable=False)
+    phone_number = db.Column( db.String(15), unique=True)
     user = db.relationship("User", backref=db.backref("orders", lazy=True))
     order_items = db.relationship("OrderItem", backref="order", lazy=True)  
 
