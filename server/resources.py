@@ -82,7 +82,7 @@ class UserLogin(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument(
-            "credential", type=str, required=True, help="Username or email is required"
+            "credential", type=str, required=True, help="Phone number or email is required"
         )
         parser.add_argument(
             "password", type=str, required=True, help="Password is required"
@@ -93,7 +93,7 @@ class UserLogin(Resource):
         password = args["password"]
 
         user = User.query.filter(
-            (User.username == credential) | (User.email == credential)
+            (User.phone_number == credential) | (User.email == credential)
         ).first()
 
         if user and user.password == password:
@@ -101,7 +101,10 @@ class UserLogin(Resource):
             access_token = create_access_token(identity=user.id)
             return {
                 "message": "User logged in successfully",
-                "username": user.username,
+                "firstname": user.firstname,
+                "lastname": user.lastname,
+                "email": user.email,
+                "phone_number": user.phone_number,
                 "role": user.role,
                 "access_token": access_token,
             }, 200

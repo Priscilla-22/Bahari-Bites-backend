@@ -74,10 +74,12 @@ category_images = {
 
 with app.app_context():
     
-    User.query.delete()
-    print('Deleted Users')
-    MenuItem.query.delete()
-    print('Deleted Menu Items')
+    db.create_all()
+    
+    # User.query.delete()
+    # print('Deleted Users')
+    # MenuItem.query.delete()
+    # print('Deleted Menu Items')
     
     admin = User(
         firstname="John",
