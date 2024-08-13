@@ -56,7 +56,7 @@ class UserRegistration(Resource):
         )
         parser.add_argument(
             "email", type=str, required=True, help="Email is required",
-        )
+        ).lower()
         args = parser.parse_args()
 
         firstname = args["firstname"]
@@ -79,7 +79,7 @@ class UserLogin(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             "credential", type=str, required=True, help="Phone number or email is required"
-        )
+        ).lower()
         parser.add_argument(
             "password", type=str, required=True, help="Password is required"
         )
