@@ -55,10 +55,7 @@ class UserRegistration(Resource):
             "password", type=str, required=True, help="Password is required"
         )
         parser.add_argument(
-            "role",
-            type=str,
-            required=True,
-            help="Role is required (customer, staff, or admin)",
+            "email", type=str, required=True, help="Email is required",
         )
         args = parser.parse_args()
 
@@ -66,12 +63,11 @@ class UserRegistration(Resource):
         lastname = args["lastname"]
         email = args["email"]
         password = args["password"]
-        role = args["role"]
 
         if User.query.filter_by(email=email).first():
             return {"message": "Email already exists"}, 400
 
-        user = User(firstname=firstname, lastname=lastname, email=email, password=password, role=role)
+        user = User(firstname=firstname, lastname=lastname, email=email, password=password)
         db.session.add(user)
         db.session.commit()
 
