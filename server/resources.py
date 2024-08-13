@@ -56,12 +56,12 @@ class UserRegistration(Resource):
         )
         parser.add_argument(
             "email", type=str, required=True, help="Email is required",
-        ).lower()
+        )
         args = parser.parse_args()
 
         firstname = args["firstname"]
         lastname = args["lastname"]
-        email = args["email"]
+        email = args["email"].lower()
         password = args["password"]
 
         if User.query.filter_by(email=email).first():
@@ -79,13 +79,13 @@ class UserLogin(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument(
             "credential", type=str, required=True, help="Phone number or email is required"
-        ).lower()
+        )
         parser.add_argument(
             "password", type=str, required=True, help="Password is required"
         )
         args = parser.parse_args()
 
-        credential = args["credential"]
+        credential = args["credential"].lower()
         password = args["password"]
 
         user = User.query.filter(
